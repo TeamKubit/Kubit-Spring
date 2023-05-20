@@ -18,7 +18,20 @@ public class UserService {
     public List<User> getUserList() {
         return userRepository.findAll();
     }
-    public Long join(User user){
+
+    public Long join(String userId, String username, String pw) {
+        // id 중복 체크
+        userRepository.findByUserId(userId)
+                .ifPresent(user -> {
+                    throw new RuntimeException(userId + "가 이미 존재합니다.");
+                });
+        // 저장
+        User user = User.builder()
+                .userId(userId)
+                .username(username)
+                .pw(pw)
+                .money(1000000)
+                .build();
         userRepository.save(user);
         return user.getId();
     }

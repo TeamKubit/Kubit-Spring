@@ -1,14 +1,16 @@
 package com.konkuk.kubit.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,11 +23,18 @@ public class User {
     private String username; // 사용자 이름
 
     @Column(nullable = false, length = 200)
-    private String pw;
+    private String pw;  //비밀번호
 
-    @Column(nullable = false)
-    private Date createdAt;
+    @Column(nullable = false, name="created_at")
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private int money;
+
+
+    @PrePersist
+    protected void onCreate() {
+        // DB 스키마를 바꿔주는 것은 아니고, spring data jpa를 통해서 create될 때, default 값 생성될 것임
+        createdAt = LocalDateTime.now();
+    }
 }
