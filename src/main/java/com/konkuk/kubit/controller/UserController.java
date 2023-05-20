@@ -5,7 +5,6 @@ import com.konkuk.kubit.domain.dto.UserJoinRequest;
 import com.konkuk.kubit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -40,7 +39,7 @@ public class UserController {
 
     @PostMapping("/join")
     public ResponseEntity<String> createUser(@RequestBody @Valid final UserJoinRequest userDto) {
-        userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
-        return ResponseEntity.ok().body("회원 가입 완료");
+        Long id = userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
+        return ResponseEntity.ok().body("회원 가입 완료 : "+ id);
     }
 }

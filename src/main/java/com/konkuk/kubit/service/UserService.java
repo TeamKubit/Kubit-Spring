@@ -2,18 +2,18 @@ package com.konkuk.kubit.service;
 
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
 //@Service
 @Transactional
+@RequiredArgsConstructor // 어노테이션을 통한 생성자 주입
 public class UserService {
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private final BCryptPasswordEncoder encoder;
 
     public List<User> getUserList() {
         return userRepository.findAll();
@@ -29,7 +29,7 @@ public class UserService {
         User user = User.builder()
                 .userId(userId)
                 .username(username)
-                .pw(pw)
+                .pw(encoder.encode(pw)) // 비밀번호 해싱
                 .money(1000000)
                 .build();
         userRepository.save(user);
