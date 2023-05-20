@@ -2,6 +2,7 @@ package com.konkuk.kubit.controller;
 
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.dto.UserJoinRequest;
+import com.konkuk.kubit.domain.dto.UserLoginRequest;
 import com.konkuk.kubit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,5 +42,10 @@ public class UserController {
     public ResponseEntity<String> createUser(@RequestBody @Valid final UserJoinRequest userDto) {
         Long id = userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
         return ResponseEntity.ok().body("회원 가입 완료 : "+ id);
+    }
+    @PostMapping("/login")
+    public ResponseEntity<String> loginUser(@RequestBody @Valid final UserLoginRequest dto){
+        String token = userService.login(dto.getUserId(), dto.getPassword());
+        return ResponseEntity.ok().body(token);
     }
 }

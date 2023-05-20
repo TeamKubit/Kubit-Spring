@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice // for exception handler
+@RestControllerAdvice // for exception handler : 특정 exception 발생시 여기서 처리하여 리턴할 수 있음
 public class ExceptionManager {
-    // runtime exceptions
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> runtimeExceptionHandler(RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(e.getMessage());
+    // AppException(custom)
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<?> appExceptionHandler(AppException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+                .body(e.getErrorCode()+" : "+e.getMessage());
     }
     //validation exceptions
     @ExceptionHandler(MethodArgumentNotValidException.class)
