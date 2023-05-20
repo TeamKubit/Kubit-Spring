@@ -1,14 +1,24 @@
 package com.konkuk.kubit.configuration;
 
+import com.konkuk.kubit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity // 모든 api에 auth 정보를 요구하도록 함
+@RequiredArgsConstructor
 public class SecurityConfig {
-    // spring security 를 넣으면 잘 안됨... 기본적으로 401 막음.
+    private final UserService userService;
+    @Value("${jwt.token.secret}")
+    private String secretKey;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -17,12 +27,14 @@ public class SecurityConfig {
                 .csrf().disable()
                 .cors().disable()
                 .authorizeHttpRequests()
-                .antMatchers("/api/**").permitAll()
-                .antMatchers("/api/v1/users/join", "/api/v1/users/login").permitAll()
+//                .antMatchers("/api/**").permitAll()
+                .antMatchers("/api/v1/users/join", "/api/v1/users/login").permitAll() //로그인과 회원가입은 허용해야함
+                .antMatchers(HttpMethod.POST).authenticated() // 다른 POST 요청은 검증 필요
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //jwt 사용하는 경우
                 .and()
+                .addFilterBefore(new JwtFilter(userService, secretKey), UsernamePasswordAuthenticationFilter.class) //jwt filter 인증 -> username password 인증
                 .build();
     }
 }

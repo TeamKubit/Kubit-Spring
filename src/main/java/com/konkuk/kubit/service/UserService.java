@@ -18,7 +18,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
-    @Value("${jwt.token.secret}")
+    @Value("${jwt.token.secret}") // from application.properties
     private String key;
     private Long tokenExpireTimeMs = 1000 * 60 * 60L; // 1hour
 
