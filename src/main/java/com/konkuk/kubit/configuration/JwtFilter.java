@@ -2,6 +2,8 @@ package com.konkuk.kubit.configuration;
 
 import com.konkuk.kubit.service.UserService;
 import com.konkuk.kubit.utils.JwtTokenUtil;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,17 +38,23 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         // extract token
         String token = authorization.split(" ")[1]; // Bearer token...
-        // check token is expired
-        if(JwtTokenUtil.isExpired(token, secretKey)){
-            logger.error("Token is expired");
-            filterChain.doFilter(request, response);
-            return;
-        }
+//        // check token is expired
+//        if(JwtTokenUtil.isExpired(token, secretKey)){
+//            logger.error("Token is expired");
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         // extract payload from token
-        String userId = JwtTokenUtil.getUserIdFromToken(token, secretKey);
+        String userId = "";
+        try{
+            userId = JwtTokenUtil.getUserIdFromToken(token, secretKey);
+        }catch (ExpiredJwtException e){
+            logger.error("token is expired");
+            throw new JwtException("토큰 만료");
+        }
+        //check userId is valid
         logger.info("userId : "+userId);
-
         // authorization
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority(("USER"))));

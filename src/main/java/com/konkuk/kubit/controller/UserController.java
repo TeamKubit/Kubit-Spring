@@ -1,6 +1,8 @@
 package com.konkuk.kubit.controller;
 
 import com.konkuk.kubit.domain.User;
+import com.konkuk.kubit.domain.dto.RefreshTokenRequest;
+import com.konkuk.kubit.domain.dto.TokenInfo;
 import com.konkuk.kubit.domain.dto.UserJoinRequest;
 import com.konkuk.kubit.domain.dto.UserLoginRequest;
 import com.konkuk.kubit.service.UserService;
@@ -44,8 +46,15 @@ public class UserController {
         return ResponseEntity.ok().body("회원 가입 완료 : "+ id);
     }
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody @Valid final UserLoginRequest dto){
-        String token = userService.login(dto.getUserId(), dto.getPassword());
-        return ResponseEntity.ok().body(token);
+    public ResponseEntity<TokenInfo> loginUser(@RequestBody @Valid final UserLoginRequest dto){
+        TokenInfo tokenInfo = userService.login(dto.getUserId(), dto.getPassword());
+        return ResponseEntity.ok().body(tokenInfo);
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenInfo> refresh(@RequestBody RefreshTokenRequest dto){
+        System.out.println(dto);
+        System.out.println(dto.getRefreshToken());
+        TokenInfo tokenInfo = userService.regenerateToken(dto.getRefreshToken());
+        return ResponseEntity.ok().body(tokenInfo);
     }
 }
