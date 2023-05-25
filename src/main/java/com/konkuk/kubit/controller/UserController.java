@@ -28,7 +28,7 @@ public class UserController {
 
     @GetMapping("/get")
     public List<Map> test() {
-        List<Map> result = new ArrayList<Map>();
+        List<Map> result = new ArrayList<>();
         List<User> userList = userService.getUserList();
         for (User user : userList) {
             Map userMap = new HashMap<String, Object>();

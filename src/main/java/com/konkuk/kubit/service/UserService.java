@@ -8,18 +8,29 @@ import com.konkuk.kubit.repository.UserRepository;
 import com.konkuk.kubit.utils.JwtTokenUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
-//@Service
+@Service
 @Transactional
-@RequiredArgsConstructor // 어노테이션을 통한 생성자 주입
+//@RequiredArgsConstructor // 어노테이션을 통한 생성자 주입
+//@Component
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
+
+    @Autowired
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder){
+        this.userRepository = userRepository;
+        this.encoder = encoder;
+    }
+
     @Value("${jwt.token.secret}") // from application.properties
     private String key;
     private Long accessTokenExpireTimeMs = 1000 * 60 * 60L; // 1hour
