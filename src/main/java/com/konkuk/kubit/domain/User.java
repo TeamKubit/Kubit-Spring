@@ -38,7 +38,10 @@ public class User {
     private LocalDateTime createdAt;    // 생성 시간
 
     @OneToMany(mappedBy = "uId")
-    private List<Wallet> wallets = new ArrayList<>(); // why new?
+    private List<Wallet> wallets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "transactionId")
+    private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
