@@ -4,6 +4,8 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -11,10 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "user")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, name="uId")
+    private Long uId;
 
     @Column(nullable = false, unique = true, length = 20)
     private String userId;  // 로그인시 필요한 회원의 id
@@ -23,14 +26,19 @@ public class User {
     private String username; // 사용자 이름
 
     @Column(nullable = false, length = 200)
-    private String pw;  //비밀번호
-
-    @Column(nullable = false, name="created_at")
-    private LocalDateTime createdAt;
+    private String pw;  // 비밀번호
 
     @Column(nullable = false)
-    private int money;
+    private double money;   // 잔액
 
+    @Column(nullable = false)
+    private int depositLimitCount; // 입금 제한 횟수
+
+    @Column(nullable = false, name="created_at")
+    private LocalDateTime createdAt;    // 생성 시간
+
+    @OneToMany(mappedBy = "uId")
+    private List<Wallet> wallets = new ArrayList<>(); // why new?
 
     @PrePersist
     protected void onCreate() {

@@ -44,7 +44,7 @@ public class UserService {
                 .money(1000000)
                 .build();
         userRepository.save(user);
-        return user.getId();
+        return user.getUId();
     }
 
     public TokenInfo login(String userId, String pw) {

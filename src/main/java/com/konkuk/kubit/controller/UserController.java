@@ -32,7 +32,7 @@ public class UserController {
         List<User> userList = userService.getUserList();
         for (User user : userList) {
             Map userMap = new HashMap<String, Object>();
-            userMap.put("id", user.getId());
+            userMap.put("uid", user.getUId());
             userMap.put("username", user.getUsername());
             userMap.put("userId", user.getUserId());
             result.add(userMap);
