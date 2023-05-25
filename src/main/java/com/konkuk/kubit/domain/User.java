@@ -40,7 +40,7 @@ public class User {
     @OneToMany(mappedBy = "uId")
     private List<Wallet> wallets = new ArrayList<>();
 
-    @OneToMany(mappedBy = "transactionId")
+    @OneToMany(mappedBy = "transactionId", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist

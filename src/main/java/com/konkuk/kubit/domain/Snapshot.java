@@ -26,7 +26,7 @@ public class Snapshot {
 
     private double marketPrice;
 
-    @OneToMany(mappedBy = "transactionId")
+    @OneToMany(mappedBy = "transactionId", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
 
     private LocalDateTime time;

@@ -22,7 +22,7 @@ public class Market {
     private String marketDescription;
     private String currency;
 
-    @OneToMany(mappedBy = "marketCode")
+    @OneToMany(mappedBy = "marketCode", cascade = CascadeType.ALL)
     private List<Wallet> wallets = new ArrayList<>();
 
 }
