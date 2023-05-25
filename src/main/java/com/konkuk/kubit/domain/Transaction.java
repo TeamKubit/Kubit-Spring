@@ -22,8 +22,8 @@ public class Transaction {
     private User user;
 
     @ManyToOne(fetch= FetchType.LAZY)
-    @JoinColumn(name="snapshotId")
-    private Snapshot snapshotInfo;
+    @JoinColumn(name="marketCode")
+    private Market marketCode;
 
     private double quantity;
 
@@ -35,4 +35,5 @@ public class Transaction {
 
     private double charge;
 
+    private double requestPrice;
 }
