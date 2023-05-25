@@ -36,4 +36,6 @@ public class Transaction {
     private double charge;
 
     private double requestPrice;
+
+    private double completePrice;
 }
