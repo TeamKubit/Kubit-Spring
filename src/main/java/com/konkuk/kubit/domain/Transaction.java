@@ -35,9 +35,4 @@ public class Transaction {
 
     private double charge;
 
-    @PrePersist
-    protected void onCreate() {
-        // DB 스키마를 바꿔주는 것은 아니고, spring data jpa를 통해서 create될 때, default 값 생성될 것임
-        completeTime = LocalDateTime.now();
-    }
 }
