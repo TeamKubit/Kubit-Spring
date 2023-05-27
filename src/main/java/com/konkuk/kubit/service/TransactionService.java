@@ -2,7 +2,11 @@ package com.konkuk.kubit.service;
 
 import com.konkuk.kubit.domain.Market;
 import com.konkuk.kubit.domain.Transaction;
+import com.konkuk.kubit.domain.dto.CurrentPriceResponse;
 import com.konkuk.kubit.repository.TransactionRepository;
+import com.konkuk.kubit.utils.UpbitApiClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,30 +18,41 @@ import java.util.Optional;
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
-    private RestTemplate restTemplate;
+    private UpbitApiClient upbitApiClient;
+    private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, RestTemplate restTemplate) {
+    public TransactionService(TransactionRepository transactionRepository, UpbitApiClient upbitApiClient) {
         this.transactionRepository = transactionRepository;
-        this.restTemplate = restTemplate;
+        this.upbitApiClient = upbitApiClient;
     }
 
     @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot(){
         //transaction 의 대기상태가 wait인 것 들을 찾는다.
+//        CurrentPriceResponse[] tmpresponse = upbitApiClient.callApi("KRW-BTC");
+//
+//        double tmpcurretnPrice = tmpresponse[0].getTrade_price();
+//        log.info(String.valueOf(tmpcurretnPrice));
+
         Optional<List<Transaction>> transactionList =  transactionRepository.findAllByTransactionType("wait");
         if(transactionList.isPresent()){
             List<Transaction> transactions = transactionList.get();
             for (Transaction transaction: transactions) {
                 double requestPrice = transaction.getRequestPrice();
                 Market market = transaction.getMarketCode();
-                String marketName = market.getMarketName();
+                String marketCode = market.getMarketCode();
+                //marketCode로 api불러오기
+                CurrentPriceResponse[] response = upbitApiClient.callApi(marketCode);
+
+                double currentPrice = response[0].getTrade_price();
+
                 // 지정가 거래
                 if(requestPrice>0){
-                    System.out.println('a');
+                    limitTrade(currentPrice, transaction);
                 }
                 // 현재가 거래
                 else {
-                    System.out.println('b');
+                    currentTrade(currentPrice, transaction);
                 }
             }
         }
