@@ -4,6 +4,7 @@ import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.Wallet;
 import com.konkuk.kubit.domain.dto.*;
 import com.konkuk.kubit.service.UserService;
+import com.konkuk.kubit.utils.GetUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,16 +56,15 @@ public class UserController {
         TokenInfo tokenInfo = userService.regenerateToken(dto.getRefreshToken());
         return ResponseEntity.ok().body(tokenInfo);
     }
+
     @GetMapping("/wallet_overall")
-    public ResponseEntity<?> walletOverall(Authentication authentication){
-        List<WalletDto> wallets = userService.getWalletOverall(authentication.getName());
-        System.out.println(wallets);
+    public ResponseEntity<?> walletOverall(@GetUser User user){
+        List<WalletDto> wallets = userService.getWalletOverall(user);
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
                 .result_msg("지갑 정보")
                 .detail(wallets)
                 .build();
-        System.out.println(data);
         return ResponseEntity.ok().body(data);
     }
 }

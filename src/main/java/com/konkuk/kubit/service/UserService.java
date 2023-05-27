@@ -7,6 +7,7 @@ import com.konkuk.kubit.domain.dto.WalletDto;
 import com.konkuk.kubit.exception.AppException;
 import com.konkuk.kubit.exception.ErrorCode;
 import com.konkuk.kubit.repository.UserRepository;
+import com.konkuk.kubit.utils.GetUser;
 import com.konkuk.kubit.utils.JwtTokenUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,11 +91,9 @@ public class UserService {
         TokenInfo tokenInfo = JwtTokenUtil.createToken(selectedUser.getUserId(),key, accessTokenExpireTimeMs, refreshTokenExpireTimeMs);
         return tokenInfo;
     }
-    public List<WalletDto> getWalletOverall(String userId){
-        User selectedUser = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USERID_NOTFOUND, userId+"에 해당하는 사용자가 없습니다")); //user 없을 때 appexception throw
-//        return selectedUser.getInitializedWallets();
-        return selectedUser.getWallets().stream()
+
+    public List<WalletDto> getWalletOverall(User user){
+        return user.getWallets().stream()
                 .map(wallet -> new WalletDto(wallet))
                 .collect(Collectors.toList());
     }
