@@ -46,10 +46,6 @@ public class User {
     @OneToMany(mappedBy = "transactionId", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
 
-    public List<Wallet> getInitializedWallets(){
-        Hibernate.initialize(wallets);
-        return wallets;
-    }
     @PrePersist
     protected void onCreate() {
         // DB 스키마를 바꿔주는 것은 아니고, spring data jpa를 통해서 create될 때, default 값 생성될 것임

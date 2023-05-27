@@ -27,8 +27,8 @@ public class Wallet {
     @JoinColumn(name="marketCode")
     private Market marketCode;
 
-    private float quantity;
+    private double quantity;
 
-    private float totalPrice;
+    private double totalPrice;
 }
 

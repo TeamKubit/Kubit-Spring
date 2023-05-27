@@ -88,17 +88,22 @@
 
 - response
 
-```
+```json
 {
-  "result_code": 200,
-  "result_message": "성공",
-  "data": {
-    "money": 10002.1,
-    "wallet_list": [
-      { "market": "KRW-BTC", "quantity": 0.000002, "bid_total_price": 113.0002 },
-      { "market": "KRW-ETH", "quantity": 0.000003, "bid_total_price": 90.00301 }
+    "result_code": 200,
+    "result_msg": "지갑 정보",
+    "detail": [
+        {
+            "marketCode": "KRW_BTC",
+            "quantity": 1.0,
+            "totalPrice": 10000.0
+        },
+        {
+            "marketCode": "KRW_ETH",
+            "quantity": 2.0,
+            "totalPrice": 2.0E7
+        }
     ]
-  }
 }
 ```
 
