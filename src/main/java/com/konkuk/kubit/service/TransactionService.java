@@ -28,12 +28,12 @@ public class TransactionService {
 
     @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot(){
-        //transaction 의 대기상태가 wait인 것 들을 찾는다.
 //        CurrentPriceResponse[] tmpresponse = upbitApiClient.callApi("KRW-BTC");
 //
 //        double tmpcurretnPrice = tmpresponse[0].getTrade_price();
 //        log.info(String.valueOf(tmpcurretnPrice));
 
+        //transaction 의 대기상태가 wait인 것 들을 찾는다.
         Optional<List<Transaction>> transactionList =  transactionRepository.findAllByTransactionType("wait");
         if(transactionList.isPresent()){
             List<Transaction> transactions = transactionList.get();
@@ -66,5 +66,15 @@ public class TransactionService {
         //      - 매도의 경우 사용자 request_price보다 현재가가 더 크면 매도로 complete처리
         //      - 두가지 경우가 모두 아니면 wait처리
 //        String response = restTemplate.getForObject("https://api.upbit.com/v1/ticker", String.class);
+    }
+
+    private void limitTrade(double currentPrice, Transaction transaction){
+
+    }
+
+    private void currentTrade(double currentPrice, Transaction transaction){
+        transaction.setCompletePrice(currentPrice);
+        transaction.setResultType("complete");
+        transactionRepository.save(transaction);
     }
 }
