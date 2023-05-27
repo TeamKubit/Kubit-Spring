@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface TransactionRepository  extends JpaRepository<Transaction, Long> {
     Optional<Transaction> findByTransactionType(String type);
 
-    Optional<List<Transaction>> findAllByTransactionType(String type);
+    Optional<List<Transaction>> findAllByResultType(String type);
 
 
 }

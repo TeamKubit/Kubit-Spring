@@ -28,19 +28,17 @@ public class TransactionService {
 
     @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot(){
-//        CurrentPriceResponse[] tmpresponse = upbitApiClient.callApi("KRW-BTC");
-//
-//        double tmpcurretnPrice = tmpresponse[0].getTrade_price();
-//        log.info(String.valueOf(tmpcurretnPrice));
 
         //transaction 의 대기상태가 wait인 것 들을 찾는다.
-        Optional<List<Transaction>> transactionList =  transactionRepository.findAllByTransactionType("wait");
+        Optional<List<Transaction>> transactionList =  transactionRepository.findAllByResultType("wait");
         if(transactionList.isPresent()){
             List<Transaction> transactions = transactionList.get();
             for (Transaction transaction: transactions) {
                 double requestPrice = transaction.getRequestPrice();
+                // 순환 참조 오류 발생 가능... main branch 의 user service 코드 참조(dto 만들어서 처리)
                 Market market = transaction.getMarketCode();
                 String marketCode = market.getMarketCode();
+                log.info("calling up-bit market info api about"+marketCode);
                 //marketCode로 api불러오기
                 CurrentPriceResponse[] response = upbitApiClient.callApi(marketCode);
 
@@ -68,18 +66,19 @@ public class TransactionService {
     }
 
     private void limitTrade(double currentPrice, Transaction transaction){
-        if(transaction.getTransactionType().equals("bid")){
+        if(transaction.getTransactionType().equals("BID")){
             // 매수 성공
             if(transaction.getRequestPrice() > currentPrice) {
                 transaction.setCompletePrice(currentPrice);
-                transaction.setResultType("complete");
+                transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
+                //TODO:: user 얻어서 해당 유저와 마켓코드를 가지는 wallet 의 quantity 와 total_price 업데이트
             }
         }else {
             // 매도 성공
             if(transaction.getRequestPrice() < currentPrice) {
                 transaction.setCompletePrice(currentPrice);
-                transaction.setResultType("complete");
+                transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
             }
         }
@@ -87,7 +86,7 @@ public class TransactionService {
 
     private void currentTrade(double currentPrice, Transaction transaction){
         transaction.setCompletePrice(currentPrice);
-        transaction.setResultType("complete");
+        transaction.setResultType("SUCCESS");
         transactionRepository.save(transaction);
     }
 }
