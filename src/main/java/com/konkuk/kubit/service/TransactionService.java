@@ -65,11 +65,24 @@ public class TransactionService {
         //      - 매수의 경우 사용자 request_price보다 현재가가 더 낮으면 매수로 complete처리
         //      - 매도의 경우 사용자 request_price보다 현재가가 더 크면 매도로 complete처리
         //      - 두가지 경우가 모두 아니면 wait처리
-//        String response = restTemplate.getForObject("https://api.upbit.com/v1/ticker", String.class);
     }
 
     private void limitTrade(double currentPrice, Transaction transaction){
-
+        if(transaction.getTransactionType().equals("bid")){
+            // 매수 성공
+            if(transaction.getRequestPrice() > currentPrice) {
+                transaction.setCompletePrice(currentPrice);
+                transaction.setResultType("complete");
+                transactionRepository.save(transaction);
+            }
+        }else {
+            // 매도 성공
+            if(transaction.getRequestPrice() < currentPrice) {
+                transaction.setCompletePrice(currentPrice);
+                transaction.setResultType("complete");
+                transactionRepository.save(transaction);
+            }
+        }
     }
 
     private void currentTrade(double currentPrice, Transaction transaction){
