@@ -1,10 +1,15 @@
 package com.konkuk.kubit.service;
 
+import com.konkuk.kubit.domain.Market;
+import com.konkuk.kubit.domain.Transaction;
 import com.konkuk.kubit.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransactionService {
@@ -16,9 +21,26 @@ public class TransactionService {
         this.restTemplate = restTemplate;
     }
 
-    @Scheduled(fixedRate = 330)
+    @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot(){
         //transaction 의 대기상태가 wait인 것 들을 찾는다.
+        Optional<List<Transaction>> transactionList =  transactionRepository.findAllByTransactionType("wait");
+        if(transactionList.isPresent()){
+            List<Transaction> transactions = transactionList.get();
+            for (Transaction transaction: transactions) {
+                double requestPrice = transaction.getRequestPrice();
+                Market market = transaction.getMarketCode();
+                String marketName = market.getMarketName();
+                // 지정가 거래
+                if(requestPrice>0){
+                    System.out.println('a');
+                }
+                // 현재가 거래
+                else {
+                    System.out.println('b');
+                }
+            }
+        }
         // 1. wait 중 현재가 거래인 것들
         //      - wait중인 것들의 마켓 정보를 가져온다
         //      - 마켓정보를 기반으로 업비트 api를 받아온다.
@@ -28,6 +50,6 @@ public class TransactionService {
         //      - 매수의 경우 사용자 request_price보다 현재가가 더 낮으면 매수로 complete처리
         //      - 매도의 경우 사용자 request_price보다 현재가가 더 크면 매도로 complete처리
         //      - 두가지 경우가 모두 아니면 wait처리
-        String response = restTemplate.getForObject("https://api.upbit.com/v1/ticker", String.class);
+//        String response = restTemplate.getForObject("https://api.upbit.com/v1/ticker", String.class);
     }
 }
