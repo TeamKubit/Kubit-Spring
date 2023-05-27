@@ -1,21 +1,22 @@
 package com.konkuk.kubit.service;
 
 import com.konkuk.kubit.domain.User;
+import com.konkuk.kubit.domain.Wallet;
 import com.konkuk.kubit.domain.dto.TokenInfo;
+import com.konkuk.kubit.domain.dto.WalletDto;
 import com.konkuk.kubit.exception.AppException;
 import com.konkuk.kubit.exception.ErrorCode;
 import com.konkuk.kubit.repository.UserRepository;
 import com.konkuk.kubit.utils.JwtTokenUtil;
 import io.jsonwebtoken.ExpiredJwtException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -24,6 +25,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
+
 
     @Autowired
     public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder){
@@ -73,7 +75,6 @@ public class UserService {
     public TokenInfo regenerateToken(String refreshToken) {
         // refresh token 정보를 통하여 새로운 토큰을 발급
 
-
         // 1. extract userId from refreshToken
         String userId = "";
         try{
@@ -89,4 +90,13 @@ public class UserService {
         TokenInfo tokenInfo = JwtTokenUtil.createToken(selectedUser.getUserId(),key, accessTokenExpireTimeMs, refreshTokenExpireTimeMs);
         return tokenInfo;
     }
+    public List<WalletDto> getWalletOverall(String userId){
+        User selectedUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USERID_NOTFOUND, userId+"에 해당하는 사용자가 없습니다")); //user 없을 때 appexception throw
+//        return selectedUser.getInitializedWallets();
+        return selectedUser.getWallets().stream()
+                .map(wallet -> new WalletDto(wallet))
+                .collect(Collectors.toList());
+    }
+
 }
