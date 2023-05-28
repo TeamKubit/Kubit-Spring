@@ -2,9 +2,11 @@ package com.konkuk.kubit.controller;
 
 
 import com.konkuk.kubit.domain.Market;
+import com.konkuk.kubit.domain.Transaction;
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.dto.FixedTransactionRequest;
 import com.konkuk.kubit.domain.dto.ResultResponse;
+import com.konkuk.kubit.domain.dto.TransactionDto;
 import com.konkuk.kubit.exception.AppException;
 import com.konkuk.kubit.exception.ErrorCode;
 import com.konkuk.kubit.service.TransactionService;
@@ -14,6 +16,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/transaction")
@@ -23,7 +28,6 @@ public class TransactionController {
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
-
     @PostMapping("/fixed")
     public ResponseEntity<?> requestFixedPriceTransaction(@GetUser User user, @RequestBody @Valid final FixedTransactionRequest dto) {
         Long transactionId = transactionService.fixedPriceTransaction(user, dto.getTransactionType() ,dto.getRequestPrice(), dto.getMarketCode(), dto.getQuantity());
@@ -31,6 +35,32 @@ public class TransactionController {
                 .result_code(200)
                 .result_msg(dto.getTransactionType()+" 주문 완료")
                 .detail(transactionId)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
+    @GetMapping("/completes")
+    public ResponseEntity<?> getCompletedTransactions(@GetUser User user){
+        List<TransactionDto> transactionList = transactionService.getCompletedTransactions(user);
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactionList", transactionList);
+        result.put("userId", user.getUserId());
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg(user.getUserId()+ "의 체결 내역")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
+    @GetMapping("/requests")
+    public ResponseEntity<?> getRequestedTransactions(@GetUser User user){
+        List<TransactionDto> transactionList = transactionService.getRequestedTransactions(user);
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactionList", transactionList);
+        result.put("userId", user.getUserId());
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg(user.getUserId()+ "의 미체결 내역")
+                .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }

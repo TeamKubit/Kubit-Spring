@@ -46,6 +46,8 @@ charge가 소수점 단위일 때 버림?
 
 - 설치 이후 실행 방법
 
+  docker repository를 pull 받아서 컴포즈로 말아서 실행시킨다
+
   ```shell
   choieastsea@kubit-server:/$ sudo docker pull choieastsea/kubit-docker
   choieastsea@kubit-server:/$ sudo docker tag choieastsea/kubit-docker kubit_server
@@ -225,8 +227,6 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
   }
   ```
 
-  
-
 
 
 ## 시장가 거래 요청(T)
@@ -267,11 +267,30 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "testid의 체결 내역",
+      "detail": {
+          "transactionList": [
+              {
+                  "transactionId": 1,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "COMPLETE",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 3.5979298E7
+              }
+          ],
+          "userId": "testid"
+      }
+  }
+  ```
 
-
+  
 
 ## 미체결 거래 내역 조회(T)
 
@@ -285,11 +304,41 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "testid의 미체결 내역",
+      "detail": {
+          "transactionList": [
+              {
+                  "transactionId": 1,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "WAIT",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 0.0
+              },
+              {
+                  "transactionId": 2,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "WAIT",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 0.0
+              }
+          ],
+          "userId": "testid"
+      }
+  }
+  ```
 
-
+  
 
 ## 미체결 거래 내역 취소(T)
 
