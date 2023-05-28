@@ -2,6 +2,58 @@
 
 `KUBIT` backend server with `Spring Boot` 
 
+# ISSUE
+
+charge가 소수점 단위일 때 버림?
+
+## cloud server setting
+
+- spring build
+
+  gradle -> task -> build -> bootjar 더블클릭하여 jar 파일 빌드 (/build 디렉토리에서 확인)
+
+- Docker & Docker compose 깔기
+
+  https://choo.oopy.io/5c999170-dde5-4418-addc-00a0d263287c
+
+  `docker-compose.yml`
+
+  ```
+  version: "3"
+  
+  services:
+  
+          application:
+                  image: kubit_server
+                  environment:
+                          SPRING_DATASOURCE_URL : jdbc:mysql://34.22.70.64:3306/kubit_test
+                          SPRING_DATASOURCE_USERNAME : root
+                          SPRING_DATASOURCE_PASSWORD : 12341234
+                  restart: always
+                  container_name : kubit_container
+                  ports:
+                          - "8080:8080"
+  ```
+
+  `Dockerfile`
+
+  ```dockerfile
+  FROM openjdk:11-jdk-slim-buster
+  COPY build/libs/kubit-0.0.1-SNAPSHOT.jar app.jar
+  EXPOSE 8080
+  ENTRYPOINT ["java", "-jar", "/app.jar"]
+  ```
+
+- 설치 이후 실행 방법
+
+  ```shell
+  choieastsea@kubit-server:/$ sudo docker pull choieastsea/kubit-docker
+  choieastsea@kubit-server:/$ sudo docker tag choieastsea/kubit-docker kubit_server
+  choieastsea@kubit-server:/$ sudo docker-compose up
+  ```
+
+  
+
 # Schema
 
 https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
