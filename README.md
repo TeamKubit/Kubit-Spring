@@ -4,6 +4,8 @@
 
 # Schema
 
+https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
+
 ![schema](schema.png)
 
 # API
@@ -76,7 +78,7 @@
 
 ## 지갑 기본 정보(T)
 
-로그인 성공 이후, 로딩창에서 사용자에게 필요한 정보 제공
+로그인 성공 이후, 로딩창에서 사용자에게 필요한 정보(잔액 + 지갑 정보) 제공
 
 - url
 
@@ -88,17 +90,31 @@
 
 - response
 
-```
+  quantity : 갖고 있는 수량
+
+  quantityAvailable : 매도 거래 가능한 수량
+
+```json
 {
-  "result_code": 200,
-  "result_message": "성공",
-  "data": {
-    "money": 10002.1,
-    "wallet_list": [
-      { "market": "KRW-BTC", "quantity": 0.000002, "bid_total_price": 113.0002 },
-      { "market": "KRW-ETH", "quantity": 0.000003, "bid_total_price": 90.00301 }
-    ]
-  }
+    "result_code": 200,
+    "result_msg": "지갑 정보",
+    "detail": {
+        "wallet": [
+            {
+                "marketCode": "KRW-BTC",
+                "quantityAvailable": 1.1,
+                "quantity": 1.1,
+                "totalPrice": 1.1E7
+            },
+            {
+                "marketCode": "KRW-ETH",
+                "quantityAvailable": 0.6,
+                "quantity": 0.9,
+                "totalPrice": 99000.0
+            }
+        ],
+        "money": 893950.0
+    }
 }
 ```
 
@@ -108,11 +124,7 @@
 
 - url
 
-  `{root}/api/v1/transaction/fixed/{bid/ask}`
-
-  - bid : 매수
-
-  - ask : 매도
+  `{root}/api/v1/transaction/fixed`
 
 - method
 
@@ -120,13 +132,48 @@
 
 - request body
 
-  | Key           | Type(?) | Description                  |
-  | ------------- | ------- | ---------------------------- |
-  | market_code   | String  | 거래할 마켓                  |
-  | request_price | Double  | 요청 가격(1코인당 가격 의미) |
-  | quantity      | Double  | 요청 거래 수량               |
+  | Key             | Type(?) | Description                       |
+  | --------------- | ------- | --------------------------------- |
+  | transactionType | String  | BID(매수) / ASK(매도)             |
+  | marketCode      | String  | 거래할 마켓                       |
+  | requestPrice    | Double  | 요청 가격 (**1코인당 가격 의미**) |
+  | quantity        | Double  | 요청 거래 수량                    |
 
 - response
+
+  - 정상 케이스
+
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "ASK 주문 완료",
+      "detail": 1	//transactionId
+  }
+  ```
+
+  - 오류 케이스
+
+  ```json
+  {
+      "result_code": 400,
+      "result_msg": "거래 가능한 수량보다 요청 수량이 많아 거래가 불가능합니다.",
+      "detail": null
+  }
+  
+  {
+      "result_code": 400,
+      "result_msg": "마켓 코드가 올바르지 않습니다.",
+      "detail": null
+  }
+  
+  {
+      "result_code": 402,
+      "result_msg": "거래를 위한 잔액이 부족합니다",
+      "detail": null
+  }
+  ```
+
+  
 
 
 
@@ -134,10 +181,7 @@
 
 - url
 
-  `{root}/api/v1/transaction/market/{bid/ask}`
-
-  - bid : 매수
-  - ask : 매도
+  `{root}/api/v1/transaction/market`
 
 - method
 
@@ -145,10 +189,11 @@
 
 - request body
 
-  | Key         | Type(?) | Description    |
-  | ----------- | ------- | -------------- |
-  | market_code | String  | 거래할 마켓    |
-  | quantity    | Double  | 요청 거래 수량 |
+  | Key             | Type(?) | Description           |
+  | --------------- | ------- | --------------------- |
+  | transactionType | String  | BID(매수) / ASK(매도) |
+  | marketCode      | String  | 거래할 마켓           |
+  | quantity        | Double  | 요청 거래 수량        |
 
 - response
 
@@ -254,4 +299,10 @@
   |      |         |             |
 
 입출금 제한도 처리
+
+
+
+a가 이메일 요청을 해 -> 12345 생성 -> 이메일 전송
+
+a가 검증 요청을 해 -> a string을 보내주겠지? -> 
 

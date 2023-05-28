@@ -1,13 +1,14 @@
 package com.konkuk.kubit.controller;
 
 import com.konkuk.kubit.domain.User;
-import com.konkuk.kubit.domain.dto.RefreshTokenRequest;
-import com.konkuk.kubit.domain.dto.TokenInfo;
-import com.konkuk.kubit.domain.dto.UserJoinRequest;
-import com.konkuk.kubit.domain.dto.UserLoginRequest;
+import com.konkuk.kubit.domain.Wallet;
+import com.konkuk.kubit.domain.dto.*;
 import com.konkuk.kubit.service.UserService;
+import com.konkuk.kubit.utils.GetUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
 
@@ -26,35 +27,47 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/get")
-    public List<Map> test() {
-        List<Map> result = new ArrayList<>();
-        List<User> userList = userService.getUserList();
-        for (User user : userList) {
-            Map userMap = new HashMap<String, Object>();
-            userMap.put("uid", user.getUId());
-            userMap.put("username", user.getUsername());
-            userMap.put("userId", user.getUserId());
-            result.add(userMap);
-        }
-        return result;
+    @PostMapping("/join")
+    public ResponseEntity<?> createUser(@RequestBody @Valid final UserJoinRequest userDto) {
+        Long id = userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
+        ResultResponse data = ResultResponse.builder()
+                .result_code(201)
+                .result_msg("회원 가입 성공 : " + id)
+                .detail(id)
+                .build();
+        return new ResponseEntity(data, HttpStatus.CREATED);
     }
 
-    @PostMapping("/join")
-    public ResponseEntity<String> createUser(@RequestBody @Valid final UserJoinRequest userDto) {
-        Long id = userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
-        return ResponseEntity.ok().body("회원 가입 완료 : "+ id);
-    }
     @PostMapping("/login")
-    public ResponseEntity<TokenInfo> loginUser(@RequestBody @Valid final UserLoginRequest dto){
+    public ResponseEntity<?> loginUser(@RequestBody @Valid final UserLoginRequest dto) {
         TokenInfo tokenInfo = userService.login(dto.getUserId(), dto.getPassword());
-        return ResponseEntity.ok().body(tokenInfo);
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("로그인 성공")
+                .detail(tokenInfo)
+                .build();
+        return ResponseEntity.ok().body(data);
     }
+
     @PostMapping("/refresh")
-    public ResponseEntity<TokenInfo> refresh(@RequestBody RefreshTokenRequest dto){
+    public ResponseEntity<TokenInfo> refresh(@RequestBody RefreshTokenRequest dto) {
         System.out.println(dto);
         System.out.println(dto.getRefreshToken());
         TokenInfo tokenInfo = userService.regenerateToken(dto.getRefreshToken());
         return ResponseEntity.ok().body(tokenInfo);
+    }
+
+    @GetMapping("/wallet_overall")
+    public ResponseEntity<?> walletOverall(@GetUser User user){
+        List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap();
+        result.put("money", user.getMoney());
+        result.put("wallet", wallets);
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("지갑 정보")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
     }
 }
