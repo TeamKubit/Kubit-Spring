@@ -35,7 +35,7 @@ public class TransactionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, MarketRepository marketRepository, WalletRepository walletRepository) {
+    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, MarketRepository marketRepository, WalletRepository walletRepository, UpbitApiClient upbitApiClient) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.marketRepository = marketRepository;
@@ -114,15 +114,17 @@ public class TransactionService {
     public void schedulingGetSnapshot() {
 
         //transaction 의 대기상태가 wait인 것 들을 찾는다.
-        Optional<List<Transaction>> transactionList = transactionRepository.findAllByResultType("wait");
+        Optional<List<Transaction>> transactionList = transactionRepository.findAllByResultType("WAIT");
         if (transactionList.isPresent()) {
             List<Transaction> transactions = transactionList.get();
             for (Transaction transaction : transactions) {
+                log.info(transaction.toString());
+
                 double requestPrice = transaction.getRequestPrice();
                 // 순환 참조 오류 발생 가능... main branch 의 user service 코드 참조(dto 만들어서 처리)
                 Market market = transaction.getMarketCode();
                 String marketCode = market.getMarketCode();
-                log.info("calling up-bit market info api about" + marketCode);
+                log.info("calling up-bit market info api about " + marketCode);
                 //marketCode로 api불러오기
                 CurrentPriceResponse[] response = upbitApiClient.callApi(marketCode);
 
@@ -157,7 +159,7 @@ public class TransactionService {
                 transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
 
-                //TODO:: user 얻어서 해당 유저와 마켓코드를 가지는 wallet 의 quantity 와 total_price 업데이트
+                walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
             }
         } else {
             // 매도 성공
@@ -165,6 +167,8 @@ public class TransactionService {
                 transaction.setCompletePrice(currentPrice);
                 transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
+
+                walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
             }
         }
     }
@@ -173,6 +177,38 @@ public class TransactionService {
         transaction.setCompletePrice(currentPrice);
         transaction.setResultType("SUCCESS");
         transactionRepository.save(transaction);
+
+        walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
+    }
+
+    private void walletUpdate(Transaction transaction, User user, Market market) {
+        Optional<Wallet> optionalWallet = walletRepository.findByuIdAndMarketCode(user, market);
+        if(optionalWallet.isEmpty()) {
+            Wallet wallet = Wallet.builder()
+                    .uId(user)
+                    .marketCode(market)
+                    .quantity(0)
+                    .totalPrice(0)
+                    .quantityAvailable(0)
+                    .build();
+
+            walletRepository.save(wallet);
+        }
+        
+        Wallet wallet = optionalWallet.get();
+        double tmp = wallet.getQuantity();
+
+        if(transaction.getTransactionType().equals("BID")) {
+            // 매수의 경우
+            wallet.setQuantity(tmp + transaction.getQuantity());
+            wallet.setQuantityAvailable(wallet.getQuantityAvailable() + transaction.getQuantity());
+            wallet.setTotalPrice(wallet.getTotalPrice() + transaction.getQuantity() * transaction.getCompletePrice());
+        }
+        else {
+            // 매도의 경우
+            wallet.setQuantity(tmp - transaction.getQuantity());
+            wallet.setTotalPrice(wallet.getTotalPrice() - transaction.getQuantity() * transaction.getCompletePrice());
+        }
     }
 }
 
