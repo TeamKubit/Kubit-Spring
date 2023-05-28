@@ -27,7 +27,11 @@ public class Wallet {
     @JoinColumn(name="marketCode")
     private Market marketCode;
 
+    //총 수량
     private double quantity;
+
+    // 주문 가능한 수량 (매도 주문에서, quantity_available을 보고, 거래 완료시점에서 update 하도록 함)
+    private double quantityAvailable;
 
     private double totalPrice;
 }

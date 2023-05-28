@@ -4,6 +4,8 @@
 
 # Schema
 
+https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
+
 ![schema](schema.png)
 
 # API
@@ -113,11 +115,7 @@
 
 - url
 
-  `{root}/api/v1/transaction/fixed/{bid/ask}`
-
-  - bid : 매수
-
-  - ask : 매도
+  `{root}/api/v1/transaction/fixed`
 
 - method
 
@@ -125,13 +123,48 @@
 
 - request body
 
-  | Key           | Type(?) | Description                  |
-  | ------------- | ------- | ---------------------------- |
-  | market_code   | String  | 거래할 마켓                  |
-  | request_price | Double  | 요청 가격(1코인당 가격 의미) |
-  | quantity      | Double  | 요청 거래 수량               |
+  | Key             | Type(?) | Description                       |
+  | --------------- | ------- | --------------------------------- |
+  | transactionType | String  | BID(매수) / ASK(매도)             |
+  | marketCode      | String  | 거래할 마켓                       |
+  | requestPrice    | Double  | 요청 가격 (**1코인당 가격 의미**) |
+  | quantity        | Double  | 요청 거래 수량                    |
 
 - response
+
+  - 정상 케이스
+
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "ASK 주문 완료",
+      "detail": 1	//transactionId
+  }
+  ```
+
+  - 오류 케이스
+
+  ```json
+  {
+      "result_code": 400,
+      "result_msg": "거래 가능한 수량보다 요청 수량이 많아 거래가 불가능합니다.",
+      "detail": null
+  }
+  
+  {
+      "result_code": 400,
+      "result_msg": "마켓 코드가 올바르지 않습니다.",
+      "detail": null
+  }
+  
+  {
+      "result_code": 402,
+      "result_msg": "거래를 위한 잔액이 부족합니다",
+      "detail": null
+  }
+  ```
+
+  
 
 
 
@@ -139,10 +172,7 @@
 
 - url
 
-  `{root}/api/v1/transaction/market/{bid/ask}`
-
-  - bid : 매수
-  - ask : 매도
+  `{root}/api/v1/transaction/market`
 
 - method
 
@@ -150,10 +180,11 @@
 
 - request body
 
-  | Key         | Type(?) | Description    |
-  | ----------- | ------- | -------------- |
-  | market_code | String  | 거래할 마켓    |
-  | quantity    | Double  | 요청 거래 수량 |
+  | Key             | Type(?) | Description           |
+  | --------------- | ------- | --------------------- |
+  | transactionType | String  | BID(매수) / ASK(매도) |
+  | marketCode      | String  | 거래할 마켓           |
+  | quantity        | Double  | 요청 거래 수량        |
 
 - response
 
@@ -259,4 +290,10 @@
   |      |         |             |
 
 입출금 제한도 처리
+
+
+
+a가 이메일 요청을 해 -> 12345 생성 -> 이메일 전송
+
+a가 검증 요청을 해 -> a string을 보내주겠지? -> 
 
