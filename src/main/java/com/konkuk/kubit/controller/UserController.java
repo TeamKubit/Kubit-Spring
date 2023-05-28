@@ -60,10 +60,13 @@ public class UserController {
     @GetMapping("/wallet_overall")
     public ResponseEntity<?> walletOverall(@GetUser User user){
         List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap();
+        result.put("money", user.getMoney());
+        result.put("wallet", wallets);
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
                 .result_msg("지갑 정보")
-                .detail(wallets)
+                .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }

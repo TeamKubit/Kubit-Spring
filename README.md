@@ -78,7 +78,7 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 ## 지갑 기본 정보(T)
 
-로그인 성공 이후, 로딩창에서 사용자에게 필요한 정보 제공
+로그인 성공 이후, 로딩창에서 사용자에게 필요한 정보(잔액 + 지갑 정보) 제공
 
 - url
 
@@ -90,22 +90,31 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
+  quantity : 갖고 있는 수량
+
+  quantityAvailable : 매도 거래 가능한 수량
+
 ```json
 {
     "result_code": 200,
     "result_msg": "지갑 정보",
-    "detail": [
-        {
-            "marketCode": "KRW_BTC",
-            "quantity": 1.0,
-            "totalPrice": 10000.0
-        },
-        {
-            "marketCode": "KRW_ETH",
-            "quantity": 2.0,
-            "totalPrice": 2.0E7
-        }
-    ]
+    "detail": {
+        "wallet": [
+            {
+                "marketCode": "KRW-BTC",
+                "quantityAvailable": 1.1,
+                "quantity": 1.1,
+                "totalPrice": 1.1E7
+            },
+            {
+                "marketCode": "KRW-ETH",
+                "quantityAvailable": 0.6,
+                "quantity": 0.9,
+                "totalPrice": 99000.0
+            }
+        ],
+        "money": 893950.0
+    }
 }
 ```
 
