@@ -99,7 +99,7 @@ public class TransactionService {
         // 시장가 거래를 처리 (요청된 현재가로 거래를 완료 처리)
 
         // 거래 수량 구하기
-        double quantity = totalPrice / (double)currentPrice;
+        double quantity = totalPrice / (double) currentPrice;
         int charge = TransactionUtil.getCharge(currentPrice, quantity);
         //get market from marketCode
         Market market = marketRepository.findByMarketCode(marketCode)
@@ -133,10 +133,10 @@ public class TransactionService {
                             .totalPrice(totalPrice)
                             .quantityAvailable(quantity)
                             .build();
-                }else{
+                } else {
                     wallet = optionalWallet.get();
                     wallet.setQuantity(wallet.getQuantity() + quantity);
-                    wallet.setQuantityAvailable(wallet.getQuantityAvailable()+ quantity);
+                    wallet.setQuantityAvailable(wallet.getQuantityAvailable() + quantity);
                     wallet.setTotalPrice(wallet.getTotalPrice() + totalPrice);
                 }
                 walletRepository.save(wallet);
@@ -161,10 +161,11 @@ public class TransactionService {
             } catch (Exception e) {
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
             }
-            // reduce wallet's quantity_available & quantity
+            // reduce wallet's quantity_available & quantity & totalPrice
             try {
                 wallet.setQuantityAvailable(quantityBalance);
                 wallet.setQuantity(quantityBalance);
+                wallet.setTotalPrice(totalPrice);
                 walletRepository.save(wallet);
             } catch (Exception e) {
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
@@ -226,6 +227,42 @@ public class TransactionService {
                 .filter(transaction -> transaction.getResultType().equals("WAIT"))
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
+    }
+
+    public TransactionDto cancelRequestedTransaction(User user, Long transactionId) {
+        Transaction selectedTransaction = transactionRepository.findByuIdAndTransactionId(user, transactionId)
+                .orElseThrow(() -> new AppException(ErrorCode.TRANSACTION_NOTFOUND, "해당하는 거래 내용이 없습니다"));
+        if (selectedTransaction.getResultType().equals("SUCCESS"))
+            throw new AppException(ErrorCode.TRANSACTION_NOTFOUND, "해당 거래는 이미 완료되어 취소가 불가능합니다");
+        if (selectedTransaction.getResultType().equals("CANCEL"))
+            throw new AppException(ErrorCode.TRANSACTION_NOTFOUND, "해당 거래는 이미 취소되었습니다");
+        if (selectedTransaction.getTransactionType().equals("BID")) {
+            // 매수의 경우, user money 업데이트
+            user.setMoney(user.getMoney() + selectedTransaction.getQuantity() * selectedTransaction.getRequestPrice());
+            try {
+                userRepository.save(user);
+            } catch (Exception e) {
+                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
+            }
+        } else {
+            // 매도의 경우, quantity_available 업데이트
+            Wallet wallet = walletRepository.findByuIdAndMarketCode(user, selectedTransaction.getMarketCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.LOGIC_EXCEPTION, "매도 요청시 잘못되었습니다"));
+            wallet.setQuantityAvailable(wallet.getQuantityAvailable() + selectedTransaction.getQuantity());
+            try {
+                walletRepository.save(wallet);
+            } catch (Exception e) {
+                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
+            }
+        }
+        // transaction set
+        selectedTransaction.setResultType("CANCEL");
+        selectedTransaction.setCompleteTime(LocalDateTime.now());
+        try {
+            return new TransactionDto(transactionRepository.save(selectedTransaction));
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "transaction repository save error");
+        }
     }
 
 

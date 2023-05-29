@@ -55,7 +55,7 @@ public class UserService {
                 .userId(userId)
                 .username(username)
                 .pw(encoder.encode(pw)) // 비밀번호 해싱
-                .money(1000000)
+                .money(100000000)
                 .build();
         userRepository.save(user);
         return user.getUId();

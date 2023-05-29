@@ -80,4 +80,16 @@ public class TransactionController {
         return ResponseEntity.ok().body(data);
     }
 
+    @PutMapping("/requests/{transactionId}")
+    public ResponseEntity<?> cancelRequestedTransaction(@GetUser User user, @PathVariable("transactionId") Long transactionId){
+        TransactionDto transaction = transactionService.cancelRequestedTransaction(user, transactionId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("transaction", transaction);
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("거래 취소 성공")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
 }

@@ -12,6 +12,11 @@ charge가 소수점 단위일 때 버림?
 
   gradle -> task -> build -> bootjar 더블클릭하여 jar 파일 빌드 (/build 디렉토리에서 확인)
 
+  ```
+  docker buildx build --platform linux/amd64 --load -t choieastsea/kubit-docker ./
+  docker push choieastsea/kubit-docker
+  ```
+
 - Docker & Docker compose 깔기
 
   https://choo.oopy.io/5c999170-dde5-4418-addc-00a0d263287c
@@ -264,6 +269,10 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 ## 체결 거래 내역 조회(T)
 
+ -> 수정해야함
+
+-> 거래 내역 조회가 체결 거래 내역 조회 (매수/매도) 
+
 - url
 
   `{root}/api/v1/transaction/completes/`
@@ -311,6 +320,8 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
+  - 정상 케이스
+
   ```json
   {
       "result_code": 200,
@@ -345,6 +356,11 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
   }
   ```
 
+  - 오류 케이스
+
+  ```json
+  ```
+
   
 
 ## 미체결 거래 내역 취소(T)
@@ -359,11 +375,45 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
+  - 정상 케이스
 
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "거래 취소 성공",
+      "detail": {
+          "transaction": {
+              "transactionId": 8,
+              "marketCode": "KRW-BTC",
+              "quantity": 0.01,
+              "transactionType": "BID",
+              "completeTime": "2023-05-30T01:53:09.176654",
+              "resultType": "CANCEL",
+              "charge": 17989.0,
+              "requestPrice": 3.5979298E7,
+              "completePrice": 0.0
+          }
+      }
+  }
+  ```
 
+  - 오류 케이스
+
+  ```json
+  {
+      "result_code": 404,
+      "result_msg": "해당 거래는 이미 취소되었습니다",
+      "detail": null
+  }
+  
+  {
+      "result_code": 404,
+      "result_msg": "해당하는 거래 내용이 없습니다",
+      "detail": null
+  }
+  ```
+
+  
 
 ## 입출금 내역(T)
 
