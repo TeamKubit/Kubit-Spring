@@ -195,6 +195,12 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
+  - 매수시
+    - totalPrice = quantity * requestPrice만큼 user 돈을 뺌
+    - 수수료는 아직 안냄
+  - 매도시
+    - quantity만큼 wallet에 있는지 확인
+    - 수수료는 아직 안냄
   - 정상 케이스
 
   ```json
@@ -245,7 +251,8 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
   | --------------- | ------- | --------------------- |
   | transactionType | String  | BID(매수) / ASK(매도) |
   | marketCode      | String  | 거래할 마켓           |
-  | quantity        | Double  | 요청 거래 수량        |
+  | currentPrice    | int     | 현재 snapshot의 가격  |
+  | totalPrice      | int     | 매수/매도할 거래 금액 |
 
 - response
 
