@@ -4,6 +4,7 @@ import com.konkuk.kubit.domain.Market;
 import com.konkuk.kubit.domain.Transaction;
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.Wallet;
+import com.konkuk.kubit.domain.dto.CurrentPriceResponse;
 import com.konkuk.kubit.domain.dto.TransactionDto;
 import com.konkuk.kubit.exception.AppException;
 import com.konkuk.kubit.exception.ErrorCode;
@@ -127,7 +128,7 @@ public class TransactionService {
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
     }
-}
+
 
     @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot() {
@@ -178,7 +179,7 @@ public class TransactionService {
                 transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
 
-                walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
+                walletUpdate(transaction, transaction.getUId(), transaction.getMarketCode());
             }
         } else {
             // 매도 성공
@@ -187,7 +188,7 @@ public class TransactionService {
                 transaction.setResultType("SUCCESS");
                 transactionRepository.save(transaction);
 
-                walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
+                walletUpdate(transaction, transaction.getUId(), transaction.getMarketCode());
             }
         }
     }
@@ -197,7 +198,7 @@ public class TransactionService {
         transaction.setResultType("SUCCESS");
         transactionRepository.save(transaction);
 
-        walletUpdate(transaction, transaction.getUser(), transaction.getMarketCode());
+        walletUpdate(transaction, transaction.getUId(), transaction.getMarketCode());
     }
 
     private void walletUpdate(Transaction transaction, User user, Market market) {
