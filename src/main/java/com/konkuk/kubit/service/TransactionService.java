@@ -4,7 +4,7 @@ import com.konkuk.kubit.domain.Market;
 import com.konkuk.kubit.domain.Transaction;
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.Wallet;
-import com.konkuk.kubit.domain.dto.CurrentPriceResponse;
+import com.konkuk.kubit.domain.dto.TransactionDto;
 import com.konkuk.kubit.exception.AppException;
 import com.konkuk.kubit.exception.ErrorCode;
 import com.konkuk.kubit.repository.MarketRepository;
@@ -15,6 +15,7 @@ import com.konkuk.kubit.utils.TransactionUtil;
 import com.konkuk.kubit.utils.UpbitApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -75,16 +77,16 @@ public class TransactionService {
             Wallet wallet = walletRepository.findByuIdAndMarketCode(user, market)
                     .orElseThrow(() -> new AppException(ErrorCode.LACK_OF_QUANTITY, "해당 종목을 소유하고 있지 않아 매도 주문이 불가합니다."));
             double quantityBalance = wallet.getQuantityAvailable() - quantity;
-            if (quantityBalance <= 0) {
+            if(quantityBalance <= 0){
                 throw new AppException(ErrorCode.LACK_OF_QUANTITY, "거래 가능한 수량보다 요청 수량이 많아 거래가 불가능합니다.");
             }
             // create transaction
             savedEntity = transactionRequest(user, transactionType, market, requestPrice, quantity, charge, moneyBalance);
             // reduce wallet's quantity_available
-            try {
+            try{
                 wallet.setQuantityAvailable(quantityBalance);
                 walletRepository.save(wallet);
-            } catch (Exception e) {
+            }catch (Exception e){
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
             }
         }
@@ -94,7 +96,7 @@ public class TransactionService {
 
     private Transaction transactionRequest(User user, String transactionType, Market market, double requestPrice, double quantity, double charge, double balance) {
         Transaction bidTransaction = Transaction.builder()
-                .user(user)
+                .uId(user)
                 .resultType("WAIT")
                 .transactionType(transactionType)
                 .marketCode(market)
@@ -109,6 +111,23 @@ public class TransactionService {
             throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "transaction repository save error");
         }
     }
+
+    public List<TransactionDto> getCompletedTransactions(User user) {
+        return user.getTransactions().stream()
+                .filter(transaction -> transaction.getResultType().equals("COMPLETE"))
+                .map(TransactionDto::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<TransactionDto> getRequestedTransactions(User user) {
+//        Hibernate.initialize(user.getTransactions());
+//        System.out.println(user.getTransactions().size()); // why 1???~!!
+        return user.getTransactions().stream()
+                .filter(transaction -> transaction.getResultType().equals("WAIT"))
+                .map(TransactionDto::new)
+                .collect(Collectors.toList());
+    }
+}
 
     @Scheduled(fixedRate = 5000)
     public void schedulingGetSnapshot() {
@@ -194,7 +213,7 @@ public class TransactionService {
 
             walletRepository.save(wallet);
         }
-        
+
         Wallet wallet = optionalWallet.get();
         double tmp = wallet.getQuantity();
 

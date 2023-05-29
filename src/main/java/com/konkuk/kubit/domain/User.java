@@ -40,10 +40,10 @@ public class User {
     @Column(nullable = false, name="created_at")
     private LocalDateTime createdAt;    // 생성 시간
 
-    @OneToMany(mappedBy = "uId")
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
     private List<Wallet> wallets = new ArrayList<>();
 
-    @OneToMany(mappedBy = "transactionId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
 
     @PrePersist

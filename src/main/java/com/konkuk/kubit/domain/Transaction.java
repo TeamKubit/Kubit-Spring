@@ -19,7 +19,7 @@ public class Transaction {
 
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name="uId")
-    private User user;
+    private User uId;
 
     @ManyToOne(fetch= FetchType.LAZY)
     @JoinColumn(name="marketCode")
