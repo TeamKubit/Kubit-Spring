@@ -1,18 +1,15 @@
 package com.konkuk.kubit.controller;
 
 import com.konkuk.kubit.domain.User;
-import com.konkuk.kubit.domain.Wallet;
 import com.konkuk.kubit.domain.dto.*;
 import com.konkuk.kubit.service.UserService;
 import com.konkuk.kubit.utils.GetUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,21 +37,26 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody @Valid final UserLoginRequest dto) {
-        TokenInfo tokenInfo = userService.login(dto.getUserId(), dto.getPassword());
+        Map result = userService.login(dto.getUserId(), dto.getPassword());
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
                 .result_msg("로그인 성공")
-                .detail(tokenInfo)
+                .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenInfo> refresh(@RequestBody RefreshTokenRequest dto) {
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest dto) {
         System.out.println(dto);
         System.out.println(dto.getRefreshToken());
-        TokenInfo tokenInfo = userService.regenerateToken(dto.getRefreshToken());
-        return ResponseEntity.ok().body(tokenInfo);
+        Map result = userService.regenerateToken(dto.getRefreshToken());
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("재발급 성공")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
     }
 
     @GetMapping("/wallet_overall")

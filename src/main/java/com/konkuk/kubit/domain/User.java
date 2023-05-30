@@ -35,7 +35,7 @@ public class User {
     private double money;   // 잔액
 
     @Column(nullable = false)
-    private int depositLimitCount; // 입금 제한 횟수
+    private int depositCount; // 입금 횟수 <= 3
 
     @Column(nullable = false, name="created_at")
     private LocalDateTime createdAt;    // 생성 시간
@@ -45,6 +45,11 @@ public class User {
 
     @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
     private List<Transaction> transactions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
+    private List<Bank> banks = new ArrayList<>();
+
+
 
     @PrePersist
     protected void onCreate() {

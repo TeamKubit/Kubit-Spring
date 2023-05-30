@@ -33,7 +33,7 @@ public class Transaction {
 
     private String resultType;
 
-    private double charge;
+    private int charge;
 
     private double requestPrice;
 

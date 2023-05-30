@@ -261,9 +261,14 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "BID 주문0.02631578947368421 개 거래 완료",
+      "detail": 0.02631578947368421
+  }
+  ```
+  
 
 
 

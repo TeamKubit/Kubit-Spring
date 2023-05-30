@@ -45,7 +45,6 @@ public class TransactionService {
         this.marketRepository = marketRepository;
         this.walletRepository = walletRepository;
         this.upbitApiClient = upbitApiClient;
-
     }
 
     public Long fixedPriceTransaction(User user, String transactionType, double requestPrice, String marketCode, double quantity) {
@@ -92,7 +91,6 @@ public class TransactionService {
             }
         }
         return savedEntity.getTransactionId();
-
     }
 
     public double marketPriceTransaction(User user, String transactionType, String marketCode, int currentPrice, int totalPrice) {
@@ -174,7 +172,7 @@ public class TransactionService {
         return savedEntity.getQuantity();
     }
 
-    private Transaction transactionRequest(User user, String transactionType, Market market, double requestPrice, double quantity, double charge) {
+    private Transaction transactionRequest(User user, String transactionType, Market market, double requestPrice, double quantity, int charge) {
         // requestPrice로 거래 등록
         Transaction requestTransaction = Transaction.builder()
                 .uId(user)
@@ -193,7 +191,7 @@ public class TransactionService {
         }
     }
 
-    private Transaction transactionComplete(User user, String transactionType, Market market, double requestPrice, double quantity, double charge) {
+    private Transaction transactionComplete(User user, String transactionType, Market market, double requestPrice, double quantity, int charge) {
         // requestPrice로 거래 완료 처리
         Transaction requestTransaction = Transaction.builder()
                 .uId(user)
@@ -203,6 +201,7 @@ public class TransactionService {
                 .requestPrice(requestPrice)
                 .completePrice(requestPrice)
                 .quantity(quantity)
+                .charge(charge)
                 .completeTime(LocalDateTime.now())// 현재 시간
                 .build();
         // save transaction
@@ -221,10 +220,9 @@ public class TransactionService {
     }
 
     public List<TransactionDto> getRequestedTransactions(User user) {
-//        Hibernate.initialize(user.getTransactions());
-//        System.out.println(user.getTransactions().size()); // why 1???~!!
+        // 모든 거래 내역 반환
         return user.getTransactions().stream()
-                .filter(transaction -> transaction.getResultType().equals("WAIT"))
+//                .filter(transaction -> transaction.getResultType().equals("WAIT"))
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
     }

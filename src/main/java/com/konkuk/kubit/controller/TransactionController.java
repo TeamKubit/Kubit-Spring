@@ -1,19 +1,14 @@
 package com.konkuk.kubit.controller;
 
 
-import com.konkuk.kubit.domain.Market;
-import com.konkuk.kubit.domain.MarketTransactionRequest;
-import com.konkuk.kubit.domain.Transaction;
+import com.konkuk.kubit.domain.dto.MarketTransactionRequest;
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.domain.dto.FixedTransactionRequest;
 import com.konkuk.kubit.domain.dto.ResultResponse;
 import com.konkuk.kubit.domain.dto.TransactionDto;
-import com.konkuk.kubit.exception.AppException;
-import com.konkuk.kubit.exception.ErrorCode;
 import com.konkuk.kubit.service.TransactionService;
 import com.konkuk.kubit.utils.GetUser;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -74,7 +69,7 @@ public class TransactionController {
         result.put("userId", user.getUserId());
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
-                .result_msg(user.getUserId() + "의 미체결 내역")
+                .result_msg(user.getUserId() + "의 거래 내역")
                 .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);

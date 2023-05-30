@@ -1,4 +1,4 @@
-package com.konkuk.kubit.domain;
+package com.konkuk.kubit.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
