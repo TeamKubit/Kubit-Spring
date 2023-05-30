@@ -35,7 +35,7 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final MarketRepository marketRepository;
     private final WalletRepository walletRepository;
-    private UpbitApiClient upbitApiClient;
+    private final UpbitApiClient upbitApiClient;
     private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Autowired
@@ -277,7 +277,6 @@ public class TransactionService {
                 log.info(transaction.toString());
 
                 double requestPrice = transaction.getRequestPrice();
-                // 순환 참조 오류 발생 가능... main branch 의 user service 코드 참조(dto 만들어서 처리)
                 Market market = transaction.getMarketCode();
                 String marketCode = market.getMarketCode();
                 log.info("calling up-bit market info api about " + marketCode);
@@ -362,7 +361,11 @@ public class TransactionService {
         } else {
             // 매도의 경우
             wallet.setQuantity(tmp - transaction.getQuantity());
-            wallet.setTotalPrice(wallet.getTotalPrice() - transaction.getQuantity() * transaction.getCompletePrice());
+            int total_charge = TransactionUtil.getCharge(transaction.getCompletePrice(), transaction.getQuantity());
+            double transactionTotalPrice = transaction.getQuantity() * transaction.getCompletePrice();
+
+            user.setMoney(user.getMoney() + transactionTotalPrice - total_charge);
+            wallet.setTotalPrice(wallet.getTotalPrice() -transactionTotalPrice);
         }
     }
 }
