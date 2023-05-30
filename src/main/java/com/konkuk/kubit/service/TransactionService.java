@@ -312,6 +312,7 @@ public class TransactionService {
             if (transaction.getRequestPrice() > currentPrice) {
                 transaction.setCompletePrice(currentPrice);
                 transaction.setResultType("SUCCESS");
+                transaction.setCompleteTime(LocalDateTime.now());
                 transactionRepository.save(transaction);
 
                 walletUpdate(transaction, transaction.getUId(), transaction.getMarketCode());
@@ -321,6 +322,7 @@ public class TransactionService {
             if (transaction.getRequestPrice() < currentPrice) {
                 transaction.setCompletePrice(currentPrice);
                 transaction.setResultType("SUCCESS");
+                transaction.setCompleteTime(LocalDateTime.now());
                 transactionRepository.save(transaction);
 
                 walletUpdate(transaction, transaction.getUId(), transaction.getMarketCode());
