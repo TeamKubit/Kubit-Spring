@@ -4,7 +4,7 @@
 
 # ISSUE
 
-charge가 소수점 단위일 때 버림?
+
 
 ## cloud server setting
 
@@ -274,10 +274,6 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 ## 체결 거래 내역 조회(T)
 
- -> 수정해야함
-
--> 거래 내역 조회가 체결 거래 내역 조회 (매수/매도) 
-
 - url
 
   `{root}/api/v1/transaction/completes/`
@@ -313,7 +309,7 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
   
 
-## 미체결 거래 내역 조회(T)
+## 거래 내역 조회(T)
 
 - url
 
@@ -330,7 +326,7 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
   ```json
   {
       "result_code": 200,
-      "result_msg": "testid의 미체결 내역",
+      "result_msg": "testid의 거래 내역",
       "detail": {
           "transactionList": [
               {
@@ -354,18 +350,24 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
                   "charge": 17989.649,
                   "requestPrice": 3.5979298E7,
                   "completePrice": 0.0
+              },
+            	{
+                  "transactionId": 3,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "COMPLETE",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 3.5979298E7
               }
           ],
           "userId": "testid"
       }
   }
   ```
-
-  - 오류 케이스
-
-  ```json
-  ```
-
+  
   
 
 ## 미체결 거래 내역 취소(T)
@@ -432,9 +434,27 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "testname 입출금 내역",
+      "detail": {
+          "bankList": [
+              {
+                  "bankType": "DEPOSIT",
+                  "money": 10000000,
+                  "tradeAt": "2023-05-30T19:57:34.131833"
+              },
+              {
+                  "bankType": "WITHDRAW",
+                  "money": 100000,
+                  "tradeAt": "2023-05-30T23:27:23.655242"
+              }
+          ]
+      }
+  }
+  ```
+  
 
 
 
@@ -457,15 +477,34 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
 
 - response
 
-  | Key  | Type(?) | Description |
-  | ---- | ------- | ----------- |
-  |      |         |             |
-
-입출금 제한도 처리
-
-
-
-a가 이메일 요청을 해 -> 12345 생성 -> 이메일 전송
-
-a가 검증 요청을 해 -> a string을 보내주겠지? -> 
-
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "testname 입출금 완료",
+      "detail": {
+          "bank": {
+              "bankType": "DEPOSIT",
+              "money": 5000000,
+              "tradeAt": "2023-05-30T23:49:05.678111"
+          }
+      }
+  }
+  ```
+  
+  ```json
+  {
+      "result_code": 400,
+      "result_msg": "missing parameters",
+      "detail": {
+          "requestType": "requestType은 DEPOSIT이나 WITHDRAW로만 구성되어야 합니다."
+      }
+  }
+  ```
+  
+  ```json
+  {
+      "result_code": 402,
+      "result_msg": "입금 횟수 제한 3회를 이미 사용하였습니다",
+      "detail": null
+  }
+  ```
