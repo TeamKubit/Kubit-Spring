@@ -1,9 +1,6 @@
 package com.konkuk.kubit.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -40,13 +37,13 @@ public class User {
     @Column(nullable = false, name="created_at")
     private LocalDateTime createdAt;    // 생성 시간
 
-    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Wallet> wallets = new ArrayList<>();
 
-    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "uId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Bank> banks = new ArrayList<>();
 
 

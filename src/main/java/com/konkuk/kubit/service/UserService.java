@@ -111,5 +111,16 @@ public class UserService {
                 .map(wallet -> new WalletDto(wallet))
                 .collect(Collectors.toList());
     }
+    public User resetUser(User user){
+        user.getWallets().clear();
+        user.getTransactions().clear();
+        user.getBanks().clear();
+        user.setMoney(10000000);
+        user.setDepositCount(0);
+        User new_user = userRepository.save(user);
+        UserCreatedEvent event = new UserCreatedEvent(new_user);
+        eventPublisher.publishEvent(event);
+        return new_user;
+    }
 
 }

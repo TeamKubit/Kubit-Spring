@@ -72,4 +72,17 @@ public class UserController {
                 .build();
         return ResponseEntity.ok().body(data);
     }
+
+    @DeleteMapping("/reset")
+    public ResponseEntity<?> resetUser(@GetUser User user){
+        User new_user = userService.resetUser(user);
+        Map<String, Object> result = new HashMap();
+        result.put("user", new_user);
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("정보 삭제 완료")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
 }
