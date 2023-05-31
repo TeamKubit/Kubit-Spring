@@ -508,3 +508,38 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
       "detail": null
   }
   ```
+
+## 사용자 초기화(T)
+
+- url
+
+  `{root}/api/v1/user/reset`
+
+- method
+
+  `DELETE`
+
+- response
+
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "정보 삭제 완료",
+      "detail": {
+          "user": {
+              "userId": "konkuk",
+              "username": "testname",
+              "pw": "$2a$10$DSdZuiEWG12qY7gFBfQ58uMldaZ0ElMIim1Y1smSAk4uwsfHRVs6q",
+              "money": 1.0E7,
+              "depositCount": 0,
+              "createdAt": "2023-05-30T23:37:37.102587",
+              "wallets": [],
+              "transactions": [],
+              "banks": [],
+              "uid": 1
+          }
+      }
+  }
+  ```
+
+  
