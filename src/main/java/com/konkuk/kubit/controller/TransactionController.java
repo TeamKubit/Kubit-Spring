@@ -60,6 +60,20 @@ public class TransactionController {
                 .build();
         return ResponseEntity.ok().body(data);
     }
+    @GetMapping("/waits")
+    public ResponseEntity<?> getWaitedTransactions(@GetUser User user) {
+        List<TransactionDto> transactionList = transactionService.getWaitedTransactions(user);
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactionList", transactionList);
+        result.put("userId", user.getUserId());
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg(user.getUserId() + "의 미체결 거래 내역")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
+
 
     @GetMapping("/requests")
     public ResponseEntity<?> getRequestedTransactions(@GetUser User user) {

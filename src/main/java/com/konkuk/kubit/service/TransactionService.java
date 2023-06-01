@@ -222,7 +222,13 @@ public class TransactionService {
     public List<TransactionDto> getRequestedTransactions(User user) {
         // 모든 거래 내역 반환
         return user.getTransactions().stream()
-//                .filter(transaction -> transaction.getResultType().equals("WAIT"))
+                .map(TransactionDto::new)
+                .collect(Collectors.toList());
+    }
+    public List<TransactionDto> getWaitedTransactions(User user){
+        // 미체결 거래 내역 반환
+        return user.getTransactions().stream()
+                .filter(transaction -> transaction.getResultType().equals("WAIT"))
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
     }

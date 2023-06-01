@@ -17,15 +17,8 @@ public class Market {
     @Id
     @Column(nullable = false, name = "marketCode", length = 50)
     private String marketCode;
-
-    @Column(nullable = false)
-    private String marketName;
-
-    @Column(nullable = false)
-    private String marketDescription;
-
-    @Column(nullable = false)
-    private String currency;
+    private String koreanName; // 코인명(한글)
+    private String englishName; // 코인명(영문)
 
     @OneToMany(mappedBy = "marketCode", cascade = CascadeType.ALL)
     private List<Wallet> wallets = new ArrayList<>();

@@ -108,7 +108,7 @@ public class UserService {
 
     public List<WalletDto> getWalletOverall(User user) {
         return user.getWallets().stream()
-                .map(wallet -> new WalletDto(wallet))
+                .map(WalletDto::new)
                 .collect(Collectors.toList());
     }
     public User resetUser(User user){

@@ -368,6 +368,55 @@ https://dbdiagram.io/d/644b7741dca9fb07c43105f5를 참고한다
   }
   ```
   
+
+## 미체결 거래 내역 조회(T)
+
+- url
+
+  `{root}/api/v1/transaction/wait/`
+
+- method
+
+  `GET`
+
+- response
+
+  - 정상 케이스
+
+  ```json
+  {
+      "result_code": 200,
+      "result_msg": "konkuk의 미체결 거래 내역",
+      "detail": {
+          "transactionList": [
+            {
+                  "transactionId": 1,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "WAIT",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 0.0
+              },
+              {
+                  "transactionId": 2,
+                  "marketCode": "KRW-BTC",
+                  "quantity": 0.01,
+                  "transactionType": "BID",
+                  "completeTime": null,
+                  "resultType": "WAIT",
+                  "charge": 17989.649,
+                  "requestPrice": 3.5979298E7,
+                  "completePrice": 0.0
+              }
+          ],
+          "userId": "konkuk"
+      }
+  }
+  ```
+
   
 
 ## 미체결 거래 내역 취소(T)
