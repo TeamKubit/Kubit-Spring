@@ -47,7 +47,7 @@ public class TransactionService {
         this.upbitApiClient = upbitApiClient;
     }
 
-    public Long fixedPriceTransaction(User user, String transactionType, double requestPrice, String marketCode, double quantity) {
+    public TransactionDto fixedPriceTransaction(User user, String transactionType, double requestPrice, String marketCode, double quantity) {
         //지정가 거래를 처리
         double totalPrice = requestPrice * quantity;
         int charge = TransactionUtil.getCharge(requestPrice, quantity);
@@ -90,10 +90,10 @@ public class TransactionService {
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
             }
         }
-        return savedEntity.getTransactionId();
+        return new TransactionDto(savedEntity);
     }
 
-    public double marketPriceTransaction(User user, String transactionType, String marketCode, int currentPrice, int totalPrice) {
+    public TransactionDto marketPriceTransaction(User user, String transactionType, String marketCode, int currentPrice, int totalPrice) {
         // 시장가 거래를 처리 (요청된 현재가로 거래를 완료 처리)
 
         // 거래 수량 구하기
@@ -169,7 +169,7 @@ public class TransactionService {
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
             }
         }
-        return savedEntity.getQuantity();
+        return new TransactionDto(savedEntity);
     }
 
     private Transaction transactionRequest(User user, String transactionType, Market market, double requestPrice, double quantity, int charge) {

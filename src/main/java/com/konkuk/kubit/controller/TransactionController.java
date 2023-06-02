@@ -1,12 +1,11 @@
 package com.konkuk.kubit.controller;
 
 
-import com.konkuk.kubit.domain.dto.MarketTransactionRequest;
+import com.konkuk.kubit.domain.Transaction;
+import com.konkuk.kubit.domain.dto.*;
 import com.konkuk.kubit.domain.User;
-import com.konkuk.kubit.domain.dto.FixedTransactionRequest;
-import com.konkuk.kubit.domain.dto.ResultResponse;
-import com.konkuk.kubit.domain.dto.TransactionDto;
 import com.konkuk.kubit.service.TransactionService;
+import com.konkuk.kubit.service.UserService;
 import com.konkuk.kubit.utils.GetUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,29 +19,41 @@ import java.util.Map;
 @RequestMapping("/api/v1/transaction")
 public class TransactionController {
     private final TransactionService transactionService;
+    private final UserService userService;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService,  UserService userService) {
         this.transactionService = transactionService;
+        this.userService = userService;
     }
 
     @PostMapping("/fixed")
     public ResponseEntity<?> requestFixedPriceTransaction(@GetUser User user, @RequestBody @Valid final FixedTransactionRequest dto) {
-        Long transactionId = transactionService.fixedPriceTransaction(user, dto.getTransactionType(), dto.getRequestPrice(), dto.getMarketCode(), dto.getQuantity());
+        TransactionDto transaction = transactionService.fixedPriceTransaction(user, dto.getTransactionType(), dto.getRequestPrice(), dto.getMarketCode(), dto.getQuantity());
+        List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap<>();
+//        result.put("transaction",transaction);
+        result.put("wallet", wallets);
+        result.put("money", user.getMoney());
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
                 .result_msg(dto.getTransactionType() + " 주문 완료")
-                .detail(transactionId)
+                .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }
 
     @PostMapping("/market")
     public ResponseEntity<?> requestMarketPriceTransaction(@GetUser User user, @RequestBody @Valid final MarketTransactionRequest dto) {
-        double transactionResult = transactionService.marketPriceTransaction(user, dto.getTransactionType(), dto.getMarketCode(), dto.getCurrentPrice(), dto.getTotalPrice());
+        TransactionDto transaction = transactionService.marketPriceTransaction(user, dto.getTransactionType(), dto.getMarketCode(), dto.getCurrentPrice(), dto.getTotalPrice());
+        List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap<>();
+//        result.put("transaction",transaction);
+        result.put("wallet", wallets);
+        result.put("money", user.getMoney());
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
-                .result_msg(dto.getTransactionType() + " 주문" + transactionResult + " 개 거래 완료")
-                .detail(transactionResult)
+                .result_msg(dto.getTransactionType() + " 주문" + transaction.getQuantity() + " 개 거래 완료")
+                .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }
@@ -60,6 +71,7 @@ public class TransactionController {
                 .build();
         return ResponseEntity.ok().body(data);
     }
+
     @GetMapping("/waits")
     public ResponseEntity<?> getWaitedTransactions(@GetUser User user) {
         List<TransactionDto> transactionList = transactionService.getWaitedTransactions(user);
