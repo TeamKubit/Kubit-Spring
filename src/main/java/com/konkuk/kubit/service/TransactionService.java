@@ -366,6 +366,17 @@ public class TransactionService {
             wallet.setQuantity(tmp + transaction.getQuantity());
             wallet.setQuantityAvailable(wallet.getQuantityAvailable() + transaction.getQuantity());
             wallet.setTotalPrice(wallet.getTotalPrice() + transaction.getQuantity() * transaction.getCompletePrice());
+
+            //기존 request기준으로 매수금액이 빠져나갔는데 complete되면 차액만큼을 돌려준다.
+            user.setMoney(user.getMoney() + transaction.getQuantity() * (transaction.getRequestPrice()-transaction.getCompletePrice()));
+            //기존 request기준으로 있는 수수료를 환불
+            user.setMoney(user.getMoney() + transaction.getCharge());
+            //complete기준으로 수수료 다시 계산
+            int total_charge = TransactionUtil.getCharge(transaction.getCompletePrice(), transaction.getQuantity());
+            user.setMoney(user.getMoney() - total_charge);
+            //transaction 수수료도 complete기준으로 수수료로 변경
+            transaction.setCharge(total_charge);
+
         } else {
             // 매도의 경우
             wallet.setQuantity(tmp - transaction.getQuantity());
