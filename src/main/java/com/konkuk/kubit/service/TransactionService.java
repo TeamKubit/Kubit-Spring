@@ -344,8 +344,9 @@ public class TransactionService {
 
     private void walletUpdate(Transaction transaction, User user, Market market) {
         Optional<Wallet> optionalWallet = walletRepository.findByuIdAndMarketCode(user, market);
+        Wallet wallet = null;
         if (optionalWallet.isEmpty()) {
-            Wallet wallet = Wallet.builder()
+            wallet = Wallet.builder()
                     .uId(user)
                     .marketCode(market)
                     .quantity(0)
@@ -354,10 +355,11 @@ public class TransactionService {
                     .build();
 
             walletRepository.save(wallet);
+        }else {
+            wallet = optionalWallet.get();
         }
-
-        Wallet wallet = optionalWallet.get();
         double tmp = wallet.getQuantity();
+
 
         if (transaction.getTransactionType().equals("BID")) {
             // 매수의 경우
