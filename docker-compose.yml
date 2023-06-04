@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+
+  application:
+    image: kubit_server
+    environment:
+      TZ : "Asia/Seoul"
+      SPRING_DATASOURCE_URL : jdbc:mysql://34.22.70.64:3306/kubit_test
+      SPRING_DATASOURCE_USERNAME : root
+      SPRING_DATASOURCE_PASSWORD : 12341234
+    restart: always
+    container_name : kubit_container
+    ports:
+      - "8080:8080"
