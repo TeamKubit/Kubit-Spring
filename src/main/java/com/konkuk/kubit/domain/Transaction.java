@@ -29,7 +29,9 @@ public class Transaction {
 
     private String transactionType;
 
-    private LocalDateTime completeTime;
+    private LocalDateTime requestTime; // 요청 시간
+
+    private LocalDateTime completeTime; // 체결 시간
 
     private String resultType;
 
@@ -38,4 +40,10 @@ public class Transaction {
     private double requestPrice;
 
     private double completePrice;
+
+    @PrePersist
+    protected void onCreate() {
+        // DB 스키마를 바꿔주는 것은 아니고, spring data jpa를 통해서 create될 때, default 값 생성될 것임
+        requestTime = LocalDateTime.now();
+    }
 }

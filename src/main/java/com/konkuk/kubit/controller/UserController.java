@@ -24,7 +24,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/join")
+    @PostMapping("/join/")
     public ResponseEntity<?> createUser(@RequestBody @Valid final UserJoinRequest userDto) {
         Long id = userService.join(userDto.getUserId(), userDto.getUsername(), userDto.getPassword()); //여기서 에러나면 ExceptionHandler가 처리할 것임
         ResultResponse data = ResultResponse.builder()
@@ -35,7 +35,7 @@ public class UserController {
         return new ResponseEntity(data, HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/login/")
     public ResponseEntity<?> loginUser(@RequestBody @Valid final UserLoginRequest dto) {
         Map result = userService.login(dto.getUserId(), dto.getPassword());
         ResultResponse data = ResultResponse.builder()
@@ -46,7 +46,7 @@ public class UserController {
         return ResponseEntity.ok().body(data);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh/")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest dto) {
         System.out.println(dto);
         System.out.println(dto.getRefreshToken());
@@ -59,7 +59,7 @@ public class UserController {
         return ResponseEntity.ok().body(data);
     }
 
-    @GetMapping("/wallet_overall")
+    @GetMapping("/wallet_overall/")
     public ResponseEntity<?> walletOverall(@GetUser User user){
         List<WalletDto> wallets = userService.getWalletOverall(user);
         Map<String, Object> result = new HashMap();
@@ -73,7 +73,7 @@ public class UserController {
         return ResponseEntity.ok().body(data);
     }
 
-    @DeleteMapping("/reset")
+    @DeleteMapping("/reset/")
     public ResponseEntity<?> resetUser(@GetUser User user){
         User new_user = userService.resetUser(user);
         Map<String, Object> result = new HashMap();

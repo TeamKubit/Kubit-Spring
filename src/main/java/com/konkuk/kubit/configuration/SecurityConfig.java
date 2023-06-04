@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .cors().disable()
                 .authorizeHttpRequests()
 //                .antMatchers("/api/**").permitAll()
-                .antMatchers("/api/v1/user/join", "/api/v1/user/login", "/api/v1/user/refresh").permitAll() //로그인과 회원가입은 허용해야함 + 갱신
+                .antMatchers("/api/v1/user/join/", "/api/v1/user/login/", "/api/v1/user/refresh/").permitAll() //로그인과 회원가입은 허용해야함 + 갱신
                 .antMatchers(HttpMethod.POST).authenticated() // 다른 POST 요청은 검증 필요
                 .and()
                 .sessionManagement()

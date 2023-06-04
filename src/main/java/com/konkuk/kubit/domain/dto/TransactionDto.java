@@ -1,6 +1,7 @@
 package com.konkuk.kubit.domain.dto;
 
 import com.konkuk.kubit.domain.Transaction;
+import com.konkuk.kubit.utils.TransactionUtil;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,11 +10,15 @@ import java.time.LocalDateTime;
 public class TransactionDto {
     private Long transactionId;
     private String marketCode;
+    private String koreanName;
+    private String englishName;
     private double quantity;
 
     private String transactionType;
 
-    private LocalDateTime completeTime;
+    private String requestTime;
+
+    private String completeTime;
 
     private String resultType;
 
@@ -26,9 +31,12 @@ public class TransactionDto {
     public TransactionDto(Transaction t){
         setTransactionId(t.getTransactionId());
         setMarketCode(t.getMarketCode().getMarketCode());
+        setKoreanName(t.getMarketCode().getKoreanName());
+        setEnglishName(t.getMarketCode().getEnglishName());
         setQuantity(t.getQuantity());
         setTransactionType(t.getTransactionType());
-        setCompleteTime(t.getCompleteTime());
+        setRequestTime(TransactionUtil.getTimeString(t.getRequestTime()));
+        setCompleteTime(TransactionUtil.getTimeString(t.getCompleteTime()));
         setResultType(t.getResultType());
         setCharge(t.getCharge());
         setRequestPrice(t.getRequestPrice());

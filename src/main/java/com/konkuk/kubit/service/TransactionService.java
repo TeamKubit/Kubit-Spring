@@ -23,9 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,11 +88,12 @@ public class TransactionService {
                 throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
             }
         }
+        System.out.println(savedEntity.getRequestTime());
         return new TransactionDto(savedEntity);
     }
 
-    public TransactionDto marketPriceTransaction(User user, String transactionType, String marketCode, int currentPrice, int totalPrice) {
-        // 시장가 거래를 처리 (요청된 현재가로 거래를 완료 처리)
+    public TransactionDto bidMarketPriceTransaction(User user, String marketCode, int currentPrice, int totalPrice) {
+        // 시장가 매수 거래를 처리 (요청된 현재가로 거래를 완료 처리)
 
         // 거래 수량 구하기
         double quantity = totalPrice / (double) currentPrice;
@@ -103,74 +102,82 @@ public class TransactionService {
         Market market = marketRepository.findByMarketCode(marketCode)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_MARKETCODE, "마켓 코드가 올바르지 않습니다."));
         Transaction savedEntity;
-        if (transactionType.equals("BID")) {
-            //1. BID : 매수
-            // check for enough money
-            double moneyBalance = user.getMoney() - totalPrice;
-            if (moneyBalance - charge < 0)
-                throw new AppException(ErrorCode.LACK_OF_BALANCE, "거래를 위한 잔액이 부족합니다");
-            // create transaction as complete
-            savedEntity = transactionComplete(user, transactionType, market, currentPrice, quantity, charge);
-            // reduce money of user(totalPrice + charge)
-            try {
-                user.setMoney(moneyBalance - charge);
-                userRepository.save(user);
-            } catch (Exception e) {
-                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
+        // check for enough money
+        double moneyBalance = user.getMoney() - totalPrice;
+        if (moneyBalance - charge < 0)
+            throw new AppException(ErrorCode.LACK_OF_BALANCE, "거래를 위한 잔액이 부족합니다");
+        // create transaction as complete
+        savedEntity = transactionComplete(user, "BID", market, currentPrice, quantity, charge);
+        // reduce money of user(totalPrice + charge)
+        try {
+            user.setMoney(moneyBalance - charge);
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
+        }
+        // increase quantity & quantity_available of wallet
+        try {
+            // wallet 찾아서 수량 추가해주거나 업데이트
+            Optional<Wallet> optionalWallet = walletRepository.findByuIdAndMarketCode(user, market);
+            Wallet wallet;
+            if (optionalWallet.isEmpty()) {
+                wallet = Wallet.builder()
+                        .uId(user)
+                        .marketCode(market)
+                        .quantity(quantity)
+                        .totalPrice(totalPrice)
+                        .quantityAvailable(quantity)
+                        .build();
+            } else {
+                wallet = optionalWallet.get();
+                wallet.setQuantity(wallet.getQuantity() + quantity);
+                wallet.setQuantityAvailable(wallet.getQuantityAvailable() + quantity);
+                wallet.setTotalPrice(wallet.getTotalPrice() + totalPrice);
             }
-            // increase quantity & quantity_available of wallet
-            try {
-                // wallet 찾아서 수량 추가해주거나 업데이트
-                Optional<Wallet> optionalWallet = walletRepository.findByuIdAndMarketCode(user, market);
-                Wallet wallet;
-                if (optionalWallet.isEmpty()) {
-                    wallet = Wallet.builder()
-                            .uId(user)
-                            .marketCode(market)
-                            .quantity(quantity)
-                            .totalPrice(totalPrice)
-                            .quantityAvailable(quantity)
-                            .build();
-                } else {
-                    wallet = optionalWallet.get();
-                    wallet.setQuantity(wallet.getQuantity() + quantity);
-                    wallet.setQuantityAvailable(wallet.getQuantityAvailable() + quantity);
-                    wallet.setTotalPrice(wallet.getTotalPrice() + totalPrice);
-                }
-                walletRepository.save(wallet);
-            } catch (Exception e) {
-                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
-            }
-        } else {
-            //2. ASK : 매도
-            // check for enough quantity
-            Wallet wallet = walletRepository.findByuIdAndMarketCode(user, market)
-                    .orElseThrow(() -> new AppException(ErrorCode.LACK_OF_QUANTITY, "해당 종목을 소유하고 있지 않아 매도 주문이 불가합니다."));
-            double quantityBalance = wallet.getQuantityAvailable() - quantity;
-            if (quantityBalance <= 0) {
-                throw new AppException(ErrorCode.LACK_OF_QUANTITY, "거래 가능한 수량보다 요청 수량이 많아 거래가 불가능합니다.");
-            }
-            // create transaction as complete
-            savedEntity = transactionComplete(user, transactionType, market, currentPrice, quantity, charge);
-            // increase money of user
-            try {
-                user.setMoney(user.getMoney() + totalPrice - charge);
-                userRepository.save(user);
-            } catch (Exception e) {
-                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
-            }
-            // reduce wallet's quantity_available & quantity & totalPrice
-            try {
-                wallet.setQuantityAvailable(quantityBalance);
-                wallet.setQuantity(quantityBalance);
-                wallet.setTotalPrice(totalPrice);
-                walletRepository.save(wallet);
-            } catch (Exception e) {
-                throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
-            }
+            walletRepository.save(wallet);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
         }
         return new TransactionDto(savedEntity);
     }
+
+    public TransactionDto askMarketPriceTransaction(User user, String marketCode, int currentPrice, double quantity) {
+        // 시장가 매도 거래를 처리
+        int totalPrice = (int) (quantity * currentPrice);
+        int charge = TransactionUtil.getCharge(currentPrice, quantity);
+
+        //get market from marketCode
+        Market market = marketRepository.findByMarketCode(marketCode)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_MARKETCODE, "마켓 코드가 올바르지 않습니다."));
+        Transaction savedEntity;
+
+        Wallet wallet = walletRepository.findByuIdAndMarketCode(user, market)
+                .orElseThrow(() -> new AppException(ErrorCode.LACK_OF_QUANTITY, "해당 종목을 소유하고 있지 않아 매도 주문이 불가합니다."));
+        double quantityBalance = wallet.getQuantityAvailable() - quantity;
+        if (quantityBalance <= 0) {
+            throw new AppException(ErrorCode.LACK_OF_QUANTITY, "거래 가능한 수량보다 요청 수량이 많아 거래가 불가능합니다.");
+        }
+        // create transaction as complete
+        savedEntity = transactionComplete(user, "ASK", market, currentPrice, quantity, charge);
+        // increase money of user
+        try {
+            user.setMoney(user.getMoney() + totalPrice - charge);
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
+        }
+        // reduce wallet's quantity_available & quantity & totalPrice
+        try {
+            wallet.setQuantityAvailable(quantityBalance);
+            wallet.setQuantity(quantityBalance);
+            wallet.setTotalPrice(totalPrice);
+            walletRepository.save(wallet);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
+        }
+        return new TransactionDto(savedEntity);
+    }
+
 
     private Transaction transactionRequest(User user, String transactionType, Market market, double requestPrice, double quantity, int charge) {
         // requestPrice로 거래 등록
@@ -179,6 +186,7 @@ public class TransactionService {
                 .resultType("WAIT")
                 .transactionType(transactionType)
                 .marketCode(market)
+                .requestTime(LocalDateTime.now())
                 .requestPrice(requestPrice)
                 .quantity(quantity)
                 .charge(charge)
@@ -202,6 +210,7 @@ public class TransactionService {
                 .completePrice(requestPrice)
                 .quantity(quantity)
                 .charge(charge)
+                .requestTime(LocalDateTime.now())
                 .completeTime(LocalDateTime.now())// 현재 시간
                 .build();
         // save transaction
@@ -213,25 +222,74 @@ public class TransactionService {
     }
 
     public List<TransactionDto> getCompletedTransactions(User user) {
-        return user.getTransactions().stream()
+        List<TransactionDto> transactions = user.getTransactions().stream()
                 .filter(transaction -> transaction.getResultType().equals("SUCCESS"))
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
+        Collections.reverse(transactions);
+        return transactions;
     }
 
     public List<TransactionDto> getRequestedTransactions(User user) {
         // 모든 거래 내역 반환
-        return user.getTransactions().stream()
+        List<TransactionDto> transactions = user.getTransactions().stream()
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
+        Collections.reverse(transactions);
+        return transactions;
     }
-    public List<TransactionDto> getWaitedTransactions(User user){
+
+    public List<TransactionDto> getWaitedTransactions(User user) {
         // 미체결 거래 내역 반환
-        return user.getTransactions().stream()
+        List<TransactionDto> transactions = user.getTransactions().stream()
                 .filter(transaction -> transaction.getResultType().equals("WAIT"))
                 .map(TransactionDto::new)
                 .collect(Collectors.toList());
+        Collections.reverse(transactions);
+        return transactions;
     }
+    public List<Long> cancelTransactions(User user, Long[] transactionIdList){
+        List<Long> cancelTransactionList = new ArrayList<>();
+        for(int i=0; i<transactionIdList.length; i++){
+            try{
+                Transaction t = transactionRepository.findByuIdAndTransactionId(user, transactionIdList[i]).get();
+                if(t.getResultType().equals("WAIT")) {
+                    if(t.getTransactionType().equals("BID")){
+                        //매수 취소
+                        user.setMoney(user.getMoney() + t.getQuantity() * t.getRequestPrice());
+                        try {
+                            userRepository.save(user);
+                        } catch (Exception e) {
+                            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "user repository save error");
+                        }
+                    }else{
+                        //매도 취소
+                        Wallet wallet = walletRepository.findByuIdAndMarketCode(user, t.getMarketCode())
+                                .orElseThrow(() -> new AppException(ErrorCode.LOGIC_EXCEPTION, "매도 요청시 잘못되었습니다"));
+                        wallet.setQuantityAvailable(wallet.getQuantityAvailable() + t.getQuantity());
+                        try {
+                            walletRepository.save(wallet);
+                        } catch (Exception e) {
+                            throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "wallet repository save error");
+                        }
+                    }
+                    t.setResultType("CANCEL");
+                    t.setCompleteTime(LocalDateTime.now());
+                    try{
+                        transactionRepository.save(t);
+                    }catch(Exception e){
+                        throw new AppException(ErrorCode.REPOSITORY_EXCEPTION, "transaction repository save error");
+                    }
+                    cancelTransactionList.add(t.getTransactionId());
+                }
+            }
+            catch (Exception e){
+//                transactionIdList[i];
+            }
+        }
+        return cancelTransactionList;
+    }
+
 
     public TransactionDto cancelRequestedTransaction(User user, Long transactionId) {
         Transaction selectedTransaction = transactionRepository.findByuIdAndTransactionId(user, transactionId)
@@ -355,7 +413,7 @@ public class TransactionService {
                     .build();
 
             walletRepository.save(wallet);
-        }else {
+        } else {
             wallet = optionalWallet.get();
         }
         double tmp = wallet.getQuantity();
@@ -368,7 +426,7 @@ public class TransactionService {
             wallet.setTotalPrice(wallet.getTotalPrice() + transaction.getQuantity() * transaction.getCompletePrice());
 
             //기존 request기준으로 매수금액이 빠져나갔는데 complete되면 차액만큼을 돌려준다.
-            user.setMoney(user.getMoney() + transaction.getQuantity() * (transaction.getRequestPrice()-transaction.getCompletePrice()));
+            user.setMoney(user.getMoney() + transaction.getQuantity() * (transaction.getRequestPrice() - transaction.getCompletePrice()));
             //기존 request기준으로 있는 수수료를 환불
             user.setMoney(user.getMoney() + transaction.getCharge());
             //complete기준으로 수수료 다시 계산
@@ -384,7 +442,7 @@ public class TransactionService {
             double transactionTotalPrice = transaction.getQuantity() * transaction.getCompletePrice();
 
             user.setMoney(user.getMoney() + transactionTotalPrice - total_charge);
-            wallet.setTotalPrice(wallet.getTotalPrice() -transactionTotalPrice);
+            wallet.setTotalPrice(wallet.getTotalPrice() - transactionTotalPrice);
         }
     }
 }

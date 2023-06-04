@@ -9,9 +9,7 @@ import javax.validation.constraints.Positive;
 
 @Data
 @AllArgsConstructor
-public class MarketTransactionRequest {
-    @Pattern(regexp = "^(BID|ASK)$", message = "transactionType은 BID나 ASK로만 구성되어야 합니다.")
-    private String transactionType;
+public class BidTransactionRequest {
     @NotEmpty
     private String marketCode;
     @Positive

@@ -1,7 +1,6 @@
 package com.konkuk.kubit.controller;
 
 
-import com.konkuk.kubit.domain.Transaction;
 import com.konkuk.kubit.domain.dto.*;
 import com.konkuk.kubit.domain.User;
 import com.konkuk.kubit.service.TransactionService;
@@ -26,7 +25,7 @@ public class TransactionController {
         this.userService = userService;
     }
 
-    @PostMapping("/fixed")
+    @PostMapping("/fixed/")
     public ResponseEntity<?> requestFixedPriceTransaction(@GetUser User user, @RequestBody @Valid final FixedTransactionRequest dto) {
         TransactionDto transaction = transactionService.fixedPriceTransaction(user, dto.getTransactionType(), dto.getRequestPrice(), dto.getMarketCode(), dto.getQuantity());
         List<WalletDto> wallets = userService.getWalletOverall(user);
@@ -42,9 +41,9 @@ public class TransactionController {
         return ResponseEntity.ok().body(data);
     }
 
-    @PostMapping("/market")
-    public ResponseEntity<?> requestMarketPriceTransaction(@GetUser User user, @RequestBody @Valid final MarketTransactionRequest dto) {
-        TransactionDto transaction = transactionService.marketPriceTransaction(user, dto.getTransactionType(), dto.getMarketCode(), dto.getCurrentPrice(), dto.getTotalPrice());
+    @PostMapping("/market/bid/")
+    public ResponseEntity<?> bidMarketPriceTransaction(@GetUser User user, @RequestBody @Valid final BidTransactionRequest dto) {
+        TransactionDto transaction = transactionService.bidMarketPriceTransaction(user, dto.getMarketCode(), dto.getCurrentPrice(), dto.getTotalPrice());
         List<WalletDto> wallets = userService.getWalletOverall(user);
         Map<String, Object> result = new HashMap<>();
 //        result.put("transaction",transaction);
@@ -52,13 +51,28 @@ public class TransactionController {
         result.put("money", user.getMoney());
         ResultResponse data = ResultResponse.builder()
                 .result_code(200)
-                .result_msg(dto.getTransactionType() + " 주문" + transaction.getQuantity() + " 개 거래 완료")
+                .result_msg("매수 주문" + transaction.getQuantity() + " 개 거래 완료")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
+    @PostMapping("market/ask/")
+    public ResponseEntity<?> askMarketPriceTransaction(@GetUser User user, @RequestBody @Valid final AskTransactionRequest dto){
+        TransactionDto transaction = transactionService.askMarketPriceTransaction(user, dto.getMarketCode(), dto.getCurrentPrice(), dto.getQuantity());
+        List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap<>();
+//        result.put("transaction",transaction);
+        result.put("wallet", wallets);
+        result.put("money", user.getMoney());
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("매도 주문" + transaction.getQuantity() + " 개 거래 완료")
                 .detail(result)
                 .build();
         return ResponseEntity.ok().body(data);
     }
 
-    @GetMapping("/completes")
+    @GetMapping("/completes/")
     public ResponseEntity<?> getCompletedTransactions(@GetUser User user) {
         List<TransactionDto> transactionList = transactionService.getCompletedTransactions(user);
         Map<String, Object> result = new HashMap<>();
@@ -72,7 +86,7 @@ public class TransactionController {
         return ResponseEntity.ok().body(data);
     }
 
-    @GetMapping("/waits")
+    @GetMapping("/waits/")
     public ResponseEntity<?> getWaitedTransactions(@GetUser User user) {
         List<TransactionDto> transactionList = transactionService.getWaitedTransactions(user);
         Map<String, Object> result = new HashMap<>();
@@ -87,7 +101,7 @@ public class TransactionController {
     }
 
 
-    @GetMapping("/requests")
+    @GetMapping("/requests/")
     public ResponseEntity<?> getRequestedTransactions(@GetUser User user) {
         List<TransactionDto> transactionList = transactionService.getRequestedTransactions(user);
         Map<String, Object> result = new HashMap<>();
@@ -100,8 +114,25 @@ public class TransactionController {
                 .build();
         return ResponseEntity.ok().body(data);
     }
+    @PutMapping("/requests/")
+    public ResponseEntity<?> cancelTransactions(@GetUser User user, @RequestBody @Valid final CancelTransactionList dto){
+        List<Long> successList = transactionService.cancelTransactions(user, dto.getTransactionIdList());
+        List<TransactionDto> transactionList = transactionService.getRequestedTransactions(user);
+        List<WalletDto> wallets = userService.getWalletOverall(user);
+        Map<String, Object> result = new HashMap<>();
+        result.put("money", user.getMoney());
+        result.put("successList" , successList);
+        result.put("transactionList", transactionList);
+        result.put("wallets",wallets);
+        ResultResponse data = ResultResponse.builder()
+                .result_code(200)
+                .result_msg("거래 취소")
+                .detail(result)
+                .build();
+        return ResponseEntity.ok().body(data);
+    }
 
-    @PutMapping("/requests/{transactionId}")
+    @PutMapping("/requests/{transactionId}/")
     public ResponseEntity<?> cancelRequestedTransaction(@GetUser User user, @PathVariable("transactionId") Long transactionId){
         TransactionDto transaction = transactionService.cancelRequestedTransaction(user, transactionId);
         Map<String, Object> result = new HashMap<>();
